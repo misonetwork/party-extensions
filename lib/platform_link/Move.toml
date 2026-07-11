@@ -1,0 +1,10 @@
+[package]
+name = "platform_link"
+edition = "2024"
+license = "Apache 2.0"
+authors = ["Miso Labs, Inc. (build@miso.network)"]
+
+# A protocol-agnostic primitive: a generic, typed link to an entity on one
+# external platform (a streaming service, a social network, any site), stored as
+# a dynamic field on any object's UID. It touches nothing but the Sui framework —
+# no miso, no party — by design, so anything in the ecosystem can depend on it.

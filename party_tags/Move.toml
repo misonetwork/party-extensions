@@ -1,0 +1,8 @@
+[package]
+name = "party_tags"
+edition = "2024"
+license = "Apache 2.0"
+authors = ["Miso Labs, Inc. (build@miso.network)"]
+
+[dependencies]
+miso_party = { local = "../../miso-party" }

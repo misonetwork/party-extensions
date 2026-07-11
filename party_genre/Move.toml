@@ -1,0 +1,9 @@
+[package]
+name = "party_genre"
+edition = "2024"
+license = "Apache 2.0"
+authors = ["Miso Labs, Inc. (build@miso.network)"]
+
+[dependencies]
+miso_party = { local = "../../miso-party" }
+genre = { local = "../../miso-protocol-extensions/lib/genre" }

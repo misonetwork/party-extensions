@@ -1,0 +1,1366 @@
+{
+  "id": {
+    "address": "miso_party",
+    "name": "party"
+  },
+  "doc": " Represents parties (individuals or groups) that participate in on-chain\n activities. A party is a named entity with capability-based authorization.\n\n ### Key Features:\n\n - Individual and group party types\n - Extensible metadata via dynamic fields\n - Capability-based authorization for modifications\n - Groups can contain multiple individual parties",
+  "immediate_dependencies": [
+    {
+      "address": "std",
+      "name": "string"
+    },
+    {
+      "address": "sui",
+      "name": "derived_object"
+    },
+    {
+      "address": "sui",
+      "name": "event"
+    },
+    {
+      "address": "sui",
+      "name": "object"
+    },
+    {
+      "address": "sui",
+      "name": "transfer"
+    },
+    {
+      "address": "sui",
+      "name": "tx_context"
+    },
+    {
+      "address": "sui",
+      "name": "vec_set"
+    }
+  ],
+  "attributes": [],
+  "functions": {
+    "new": {
+      "source_index": 0,
+      "index": 0,
+      "doc": " Creates a new party with the specified kind and name.\n Returns the admin capability for managing the party.\n The party is shared and starts in the Created state.",
+      "attributes": [],
+      "visibility": "Public",
+      "entry": false,
+      "type_parameters": [],
+      "parameters": [
+        {
+          "name": "kind",
+          "type_": {
+            "Datatype": {
+              "module": {
+                "address": "miso_party",
+                "name": "party"
+              },
+              "name": "PartyKind",
+              "type_arguments": []
+            }
+          }
+        },
+        {
+          "name": "name",
+          "type_": {
+            "Datatype": {
+              "module": {
+                "address": "std",
+                "name": "string"
+              },
+              "name": "String",
+              "type_arguments": []
+            }
+          }
+        },
+        {
+          "name": "ctx",
+          "type_": {
+            "Reference": [
+              true,
+              {
+                "Datatype": {
+                  "module": {
+                    "address": "sui",
+                    "name": "tx_context"
+                  },
+                  "name": "TxContext",
+                  "type_arguments": []
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "return_": [
+        {
+          "Datatype": {
+            "module": {
+              "address": "miso_party",
+              "name": "party"
+            },
+            "name": "Party",
+            "type_arguments": []
+          }
+        },
+        {
+          "Datatype": {
+            "module": {
+              "address": "miso_party",
+              "name": "party"
+            },
+            "name": "PartyAdminCap",
+            "type_arguments": []
+          }
+        }
+      ]
+    },
+    "share": {
+      "source_index": 1,
+      "index": 1,
+      "doc": " Shares the party object, making it publicly accessible.\n Requires the admin capability.",
+      "attributes": [],
+      "visibility": "Public",
+      "entry": false,
+      "type_parameters": [],
+      "parameters": [
+        {
+          "name": "self",
+          "type_": {
+            "Datatype": {
+              "module": {
+                "address": "miso_party",
+                "name": "party"
+              },
+              "name": "Party",
+              "type_arguments": []
+            }
+          }
+        },
+        {
+          "name": "cap",
+          "type_": {
+            "Reference": [
+              false,
+              {
+                "Datatype": {
+                  "module": {
+                    "address": "miso_party",
+                    "name": "party"
+                  },
+                  "name": "PartyAdminCap",
+                  "type_arguments": []
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "return_": []
+    },
+    "set_name": {
+      "source_index": 2,
+      "index": 2,
+      "doc": " Sets the human-readable name of the party.\n Requires the admin capability.",
+      "attributes": [],
+      "visibility": "Public",
+      "entry": false,
+      "type_parameters": [],
+      "parameters": [
+        {
+          "name": "self",
+          "type_": {
+            "Reference": [
+              true,
+              {
+                "Datatype": {
+                  "module": {
+                    "address": "miso_party",
+                    "name": "party"
+                  },
+                  "name": "Party",
+                  "type_arguments": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "name": "cap",
+          "type_": {
+            "Reference": [
+              false,
+              {
+                "Datatype": {
+                  "module": {
+                    "address": "miso_party",
+                    "name": "party"
+                  },
+                  "name": "PartyAdminCap",
+                  "type_arguments": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "name": "name",
+          "type_": {
+            "Datatype": {
+              "module": {
+                "address": "std",
+                "name": "string"
+              },
+              "name": "String",
+              "type_arguments": []
+            }
+          }
+        }
+      ],
+      "return_": []
+    },
+    "add_party": {
+      "source_index": 3,
+      "index": 3,
+      "doc": " Adds an individual party to a group.\n Requires the admin capability for the group.\n The party being added must be an individual (not another group).",
+      "attributes": [],
+      "visibility": "Public",
+      "entry": false,
+      "type_parameters": [],
+      "parameters": [
+        {
+          "name": "self",
+          "type_": {
+            "Reference": [
+              true,
+              {
+                "Datatype": {
+                  "module": {
+                    "address": "miso_party",
+                    "name": "party"
+                  },
+                  "name": "Party",
+                  "type_arguments": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "name": "cap",
+          "type_": {
+            "Reference": [
+              false,
+              {
+                "Datatype": {
+                  "module": {
+                    "address": "miso_party",
+                    "name": "party"
+                  },
+                  "name": "PartyAdminCap",
+                  "type_arguments": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "name": "member",
+          "type_": {
+            "Reference": [
+              false,
+              {
+                "Datatype": {
+                  "module": {
+                    "address": "miso_party",
+                    "name": "party"
+                  },
+                  "name": "Party",
+                  "type_arguments": []
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "return_": []
+    },
+    "remove_party": {
+      "source_index": 4,
+      "index": 4,
+      "doc": " Removes a party from a group by their ID.\n Requires the admin capability for the group.",
+      "attributes": [],
+      "visibility": "Public",
+      "entry": false,
+      "type_parameters": [],
+      "parameters": [
+        {
+          "name": "self",
+          "type_": {
+            "Reference": [
+              true,
+              {
+                "Datatype": {
+                  "module": {
+                    "address": "miso_party",
+                    "name": "party"
+                  },
+                  "name": "Party",
+                  "type_arguments": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "name": "cap",
+          "type_": {
+            "Reference": [
+              false,
+              {
+                "Datatype": {
+                  "module": {
+                    "address": "miso_party",
+                    "name": "party"
+                  },
+                  "name": "PartyAdminCap",
+                  "type_arguments": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "name": "member_id",
+          "type_": {
+            "Datatype": {
+              "module": {
+                "address": "sui",
+                "name": "object"
+              },
+              "name": "ID",
+              "type_arguments": []
+            }
+          }
+        }
+      ],
+      "return_": []
+    },
+    "leave": {
+      "source_index": 5,
+      "index": 5,
+      "doc": " Removes the caller's party from a group, authorized by the *member's* own\n admin capability. Group membership is added unilaterally by the group's\n admin, but no party can be kept in a group against its will — this is the\n member's unconditional exit.",
+      "attributes": [],
+      "visibility": "Public",
+      "entry": false,
+      "type_parameters": [],
+      "parameters": [
+        {
+          "name": "group",
+          "type_": {
+            "Reference": [
+              true,
+              {
+                "Datatype": {
+                  "module": {
+                    "address": "miso_party",
+                    "name": "party"
+                  },
+                  "name": "Party",
+                  "type_arguments": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "name": "member_cap",
+          "type_": {
+            "Reference": [
+              false,
+              {
+                "Datatype": {
+                  "module": {
+                    "address": "miso_party",
+                    "name": "party"
+                  },
+                  "name": "PartyAdminCap",
+                  "type_arguments": []
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "return_": []
+    },
+    "new_individual_kind": {
+      "source_index": 6,
+      "index": 6,
+      "doc": " Creates a new individual party kind.",
+      "attributes": [],
+      "visibility": "Public",
+      "entry": false,
+      "type_parameters": [],
+      "parameters": [],
+      "return_": [
+        {
+          "Datatype": {
+            "module": {
+              "address": "miso_party",
+              "name": "party"
+            },
+            "name": "PartyKind",
+            "type_arguments": []
+          }
+        }
+      ]
+    },
+    "new_group_kind": {
+      "source_index": 7,
+      "index": 7,
+      "doc": " Creates a new group party kind with an empty member set.",
+      "attributes": [],
+      "visibility": "Public",
+      "entry": false,
+      "type_parameters": [],
+      "parameters": [],
+      "return_": [
+        {
+          "Datatype": {
+            "module": {
+              "address": "miso_party",
+              "name": "party"
+            },
+            "name": "PartyKind",
+            "type_arguments": []
+          }
+        }
+      ]
+    },
+    "id": {
+      "source_index": 8,
+      "index": 8,
+      "doc": " Returns the ID of this party.",
+      "attributes": [],
+      "visibility": "Public",
+      "entry": false,
+      "type_parameters": [],
+      "parameters": [
+        {
+          "name": "self",
+          "type_": {
+            "Reference": [
+              false,
+              {
+                "Datatype": {
+                  "module": {
+                    "address": "miso_party",
+                    "name": "party"
+                  },
+                  "name": "Party",
+                  "type_arguments": []
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "return_": [
+        {
+          "Datatype": {
+            "module": {
+              "address": "sui",
+              "name": "object"
+            },
+            "name": "ID",
+            "type_arguments": []
+          }
+        }
+      ]
+    },
+    "name": {
+      "source_index": 9,
+      "index": 9,
+      "doc": " Returns the human-readable name of this party.",
+      "attributes": [],
+      "visibility": "Public",
+      "entry": false,
+      "type_parameters": [],
+      "parameters": [
+        {
+          "name": "self",
+          "type_": {
+            "Reference": [
+              false,
+              {
+                "Datatype": {
+                  "module": {
+                    "address": "miso_party",
+                    "name": "party"
+                  },
+                  "name": "Party",
+                  "type_arguments": []
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "return_": [
+        {
+          "Datatype": {
+            "module": {
+              "address": "std",
+              "name": "string"
+            },
+            "name": "String",
+            "type_arguments": []
+          }
+        }
+      ]
+    },
+    "is_individual_kind": {
+      "source_index": 10,
+      "index": 10,
+      "doc": " Returns true if this party is an individual.",
+      "attributes": [],
+      "visibility": "Public",
+      "entry": false,
+      "type_parameters": [],
+      "parameters": [
+        {
+          "name": "self",
+          "type_": {
+            "Reference": [
+              false,
+              {
+                "Datatype": {
+                  "module": {
+                    "address": "miso_party",
+                    "name": "party"
+                  },
+                  "name": "Party",
+                  "type_arguments": []
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "return_": [
+        "bool"
+      ]
+    },
+    "is_group_kind": {
+      "source_index": 11,
+      "index": 11,
+      "doc": " Returns true if this party is a group.",
+      "attributes": [],
+      "visibility": "Public",
+      "entry": false,
+      "type_parameters": [],
+      "parameters": [
+        {
+          "name": "self",
+          "type_": {
+            "Reference": [
+              false,
+              {
+                "Datatype": {
+                  "module": {
+                    "address": "miso_party",
+                    "name": "party"
+                  },
+                  "name": "Party",
+                  "type_arguments": []
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "return_": [
+        "bool"
+      ]
+    },
+    "group_members": {
+      "source_index": 12,
+      "index": 12,
+      "doc": " Returns a reference to the group members.\n Aborts if this party is not a group.",
+      "attributes": [],
+      "visibility": "Public",
+      "entry": false,
+      "type_parameters": [],
+      "parameters": [
+        {
+          "name": "self",
+          "type_": {
+            "Reference": [
+              false,
+              {
+                "Datatype": {
+                  "module": {
+                    "address": "miso_party",
+                    "name": "party"
+                  },
+                  "name": "Party",
+                  "type_arguments": []
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "return_": [
+        {
+          "Reference": [
+            false,
+            {
+              "Datatype": {
+                "module": {
+                  "address": "sui",
+                  "name": "vec_set"
+                },
+                "name": "VecSet",
+                "type_arguments": [
+                  {
+                    "phantom": false,
+                    "argument": {
+                      "Datatype": {
+                        "module": {
+                          "address": "sui",
+                          "name": "object"
+                        },
+                        "name": "ID",
+                        "type_arguments": []
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "party_kind_name": {
+      "source_index": 13,
+      "index": 13,
+      "doc": " Returns the human-readable name of the party kind.",
+      "attributes": [],
+      "visibility": "Public",
+      "entry": false,
+      "type_parameters": [],
+      "parameters": [
+        {
+          "name": "self",
+          "type_": {
+            "Reference": [
+              false,
+              {
+                "Datatype": {
+                  "module": {
+                    "address": "miso_party",
+                    "name": "party"
+                  },
+                  "name": "PartyKind",
+                  "type_arguments": []
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "return_": [
+        {
+          "Datatype": {
+            "module": {
+              "address": "std",
+              "name": "string"
+            },
+            "name": "String",
+            "type_arguments": []
+          }
+        }
+      ]
+    },
+    "authorize": {
+      "source_index": 14,
+      "index": 14,
+      "doc": " Verifies that the admin capability matches this party.",
+      "attributes": [],
+      "visibility": "Public",
+      "entry": false,
+      "type_parameters": [],
+      "parameters": [
+        {
+          "name": "self",
+          "type_": {
+            "Reference": [
+              false,
+              {
+                "Datatype": {
+                  "module": {
+                    "address": "miso_party",
+                    "name": "party"
+                  },
+                  "name": "Party",
+                  "type_arguments": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "name": "cap",
+          "type_": {
+            "Reference": [
+              false,
+              {
+                "Datatype": {
+                  "module": {
+                    "address": "miso_party",
+                    "name": "party"
+                  },
+                  "name": "PartyAdminCap",
+                  "type_arguments": []
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "return_": []
+    },
+    "party_admin_cap_party_id": {
+      "source_index": 15,
+      "index": 15,
+      "doc": " Returns the ID of the party associated with the admin capability.",
+      "attributes": [],
+      "visibility": "Public",
+      "entry": false,
+      "type_parameters": [],
+      "parameters": [
+        {
+          "name": "cap",
+          "type_": {
+            "Reference": [
+              false,
+              {
+                "Datatype": {
+                  "module": {
+                    "address": "miso_party",
+                    "name": "party"
+                  },
+                  "name": "PartyAdminCap",
+                  "type_arguments": []
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "return_": [
+        {
+          "Datatype": {
+            "module": {
+              "address": "sui",
+              "name": "object"
+            },
+            "name": "ID",
+            "type_arguments": []
+          }
+        }
+      ]
+    },
+    "uid": {
+      "source_index": 16,
+      "index": 16,
+      "doc": " Returns a reference to the party's UID for reading dynamic fields.",
+      "attributes": [],
+      "visibility": "Public",
+      "entry": false,
+      "type_parameters": [],
+      "parameters": [
+        {
+          "name": "self",
+          "type_": {
+            "Reference": [
+              false,
+              {
+                "Datatype": {
+                  "module": {
+                    "address": "miso_party",
+                    "name": "party"
+                  },
+                  "name": "Party",
+                  "type_arguments": []
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "return_": [
+        {
+          "Reference": [
+            false,
+            {
+              "Datatype": {
+                "module": {
+                  "address": "sui",
+                  "name": "object"
+                },
+                "name": "UID",
+                "type_arguments": []
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "uid_mut": {
+      "source_index": 17,
+      "index": 17,
+      "doc": " Returns a mutable reference to the party's UID for dynamic field operations.\n Requires the admin capability.",
+      "attributes": [],
+      "visibility": "Public",
+      "entry": false,
+      "type_parameters": [],
+      "parameters": [
+        {
+          "name": "self",
+          "type_": {
+            "Reference": [
+              true,
+              {
+                "Datatype": {
+                  "module": {
+                    "address": "miso_party",
+                    "name": "party"
+                  },
+                  "name": "Party",
+                  "type_arguments": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "name": "cap",
+          "type_": {
+            "Reference": [
+              false,
+              {
+                "Datatype": {
+                  "module": {
+                    "address": "miso_party",
+                    "name": "party"
+                  },
+                  "name": "PartyAdminCap",
+                  "type_arguments": []
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "return_": [
+        {
+          "Reference": [
+            true,
+            {
+              "Datatype": {
+                "module": {
+                  "address": "sui",
+                  "name": "object"
+                },
+                "name": "UID",
+                "type_arguments": []
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "assert_is_individual_kind": {
+      "source_index": 18,
+      "index": 18,
+      "doc": " Aborts if this party is not an individual.",
+      "attributes": [],
+      "visibility": "Public",
+      "entry": false,
+      "type_parameters": [],
+      "parameters": [
+        {
+          "name": "self",
+          "type_": {
+            "Reference": [
+              false,
+              {
+                "Datatype": {
+                  "module": {
+                    "address": "miso_party",
+                    "name": "party"
+                  },
+                  "name": "Party",
+                  "type_arguments": []
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "return_": []
+    },
+    "assert_is_group_kind": {
+      "source_index": 19,
+      "index": 19,
+      "doc": " Aborts if this party is not a group.",
+      "attributes": [],
+      "visibility": "Public",
+      "entry": false,
+      "type_parameters": [],
+      "parameters": [
+        {
+          "name": "self",
+          "type_": {
+            "Reference": [
+              false,
+              {
+                "Datatype": {
+                  "module": {
+                    "address": "miso_party",
+                    "name": "party"
+                  },
+                  "name": "Party",
+                  "type_arguments": []
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "return_": []
+    }
+  },
+  "structs": {
+    "Party": {
+      "index": 0,
+      "doc": " A party in the ecosystem. Can represent an individual or a group of parties.",
+      "attributes": [],
+      "abilities": [
+        "Key"
+      ],
+      "type_parameters": [],
+      "fields": {
+        "positional_fields": false,
+        "fields": {
+          "id": {
+            "index": 0,
+            "doc": " Unique identifier for this party.",
+            "type_": {
+              "Datatype": {
+                "module": {
+                  "address": "sui",
+                  "name": "object"
+                },
+                "name": "UID",
+                "type_arguments": []
+              }
+            }
+          },
+          "kind": {
+            "index": 1,
+            "doc": " Whether this is an individual or group party.",
+            "type_": {
+              "Datatype": {
+                "module": {
+                  "address": "miso_party",
+                  "name": "party"
+                },
+                "name": "PartyKind",
+                "type_arguments": []
+              }
+            }
+          },
+          "name": {
+            "index": 2,
+            "doc": " Human-readable name of the party.\n Note this name is not \"official\" or \"verified\" in any way.\n Verification should be performed by the application layer.",
+            "type_": {
+              "Datatype": {
+                "module": {
+                  "address": "std",
+                  "name": "string"
+                },
+                "name": "String",
+                "type_arguments": []
+              }
+            }
+          }
+        }
+      }
+    },
+    "PartyAdminCap": {
+      "index": 1,
+      "doc": " Capability that authorizes modifications to a specific party.\n Created when a party is registered and transferred to the owner.",
+      "attributes": [],
+      "abilities": [
+        "Key",
+        "Store"
+      ],
+      "type_parameters": [],
+      "fields": {
+        "positional_fields": false,
+        "fields": {
+          "id": {
+            "index": 0,
+            "doc": " Unique identifier for this capability.",
+            "type_": {
+              "Datatype": {
+                "module": {
+                  "address": "sui",
+                  "name": "object"
+                },
+                "name": "UID",
+                "type_arguments": []
+              }
+            }
+          },
+          "party_id": {
+            "index": 1,
+            "doc": " ID of the party this capability controls.",
+            "type_": {
+              "Datatype": {
+                "module": {
+                  "address": "sui",
+                  "name": "object"
+                },
+                "name": "ID",
+                "type_arguments": []
+              }
+            }
+          }
+        }
+      }
+    },
+    "PartyAdminCapKey": {
+      "index": 2,
+      "doc": " Key for deriving the admin capability's deterministic address.",
+      "attributes": [],
+      "abilities": [
+        "Copy",
+        "Drop",
+        "Store"
+      ],
+      "type_parameters": [],
+      "fields": {
+        "positional_fields": true,
+        "fields": {
+          "pos0": {
+            "index": 0,
+            "doc": " ID of the party.",
+            "type_": {
+              "Datatype": {
+                "module": {
+                  "address": "sui",
+                  "name": "object"
+                },
+                "name": "ID",
+                "type_arguments": []
+              }
+            }
+          }
+        }
+      }
+    },
+    "PartyCreatedEvent": {
+      "index": 3,
+      "doc": " Emitted when a party is created (creation and `share` happen in the same\n transaction, so this is the indexer's discovery signal). The creator's\n address is deliberately NOT in the payload: Sui's event envelope already\n carries the transaction sender, and the party's controlling identity is\n the (transferable) `PartyAdminCap` holder, not the creation sender.",
+      "attributes": [],
+      "abilities": [
+        "Copy",
+        "Drop"
+      ],
+      "type_parameters": [],
+      "fields": {
+        "positional_fields": false,
+        "fields": {
+          "party_id": {
+            "index": 0,
+            "doc": " ID of the newly created party.",
+            "type_": {
+              "Datatype": {
+                "module": {
+                  "address": "sui",
+                  "name": "object"
+                },
+                "name": "ID",
+                "type_arguments": []
+              }
+            }
+          },
+          "name": {
+            "index": 1,
+            "doc": " Name of the party.",
+            "type_": {
+              "Datatype": {
+                "module": {
+                  "address": "std",
+                  "name": "string"
+                },
+                "name": "String",
+                "type_arguments": []
+              }
+            }
+          },
+          "kind": {
+            "index": 2,
+            "doc": " Kind of the party.",
+            "type_": {
+              "Datatype": {
+                "module": {
+                  "address": "std",
+                  "name": "string"
+                },
+                "name": "String",
+                "type_arguments": []
+              }
+            }
+          }
+        }
+      }
+    },
+    "PartyNameSetEvent": {
+      "index": 4,
+      "doc": null,
+      "attributes": [],
+      "abilities": [
+        "Copy",
+        "Drop"
+      ],
+      "type_parameters": [],
+      "fields": {
+        "positional_fields": false,
+        "fields": {
+          "party_id": {
+            "index": 0,
+            "doc": " ID of the party.",
+            "type_": {
+              "Datatype": {
+                "module": {
+                  "address": "sui",
+                  "name": "object"
+                },
+                "name": "ID",
+                "type_arguments": []
+              }
+            }
+          },
+          "name": {
+            "index": 1,
+            "doc": " Name of the party.",
+            "type_": {
+              "Datatype": {
+                "module": {
+                  "address": "std",
+                  "name": "string"
+                },
+                "name": "String",
+                "type_arguments": []
+              }
+            }
+          }
+        }
+      }
+    },
+    "PartyAddedToGroupEvent": {
+      "index": 5,
+      "doc": " Emitted when a party is added to a group.",
+      "attributes": [],
+      "abilities": [
+        "Copy",
+        "Drop"
+      ],
+      "type_parameters": [],
+      "fields": {
+        "positional_fields": false,
+        "fields": {
+          "group_id": {
+            "index": 0,
+            "doc": " ID of the group.",
+            "type_": {
+              "Datatype": {
+                "module": {
+                  "address": "sui",
+                  "name": "object"
+                },
+                "name": "ID",
+                "type_arguments": []
+              }
+            }
+          },
+          "member_id": {
+            "index": 1,
+            "doc": " ID of the party added to the group.",
+            "type_": {
+              "Datatype": {
+                "module": {
+                  "address": "sui",
+                  "name": "object"
+                },
+                "name": "ID",
+                "type_arguments": []
+              }
+            }
+          }
+        }
+      }
+    },
+    "PartyRemovedFromGroupEvent": {
+      "index": 6,
+      "doc": " Emitted when a party is removed from a group by the group's admin.",
+      "attributes": [],
+      "abilities": [
+        "Copy",
+        "Drop"
+      ],
+      "type_parameters": [],
+      "fields": {
+        "positional_fields": false,
+        "fields": {
+          "group_id": {
+            "index": 0,
+            "doc": " ID of the group.",
+            "type_": {
+              "Datatype": {
+                "module": {
+                  "address": "sui",
+                  "name": "object"
+                },
+                "name": "ID",
+                "type_arguments": []
+              }
+            }
+          },
+          "member_id": {
+            "index": 1,
+            "doc": " ID of the party removed from the group.",
+            "type_": {
+              "Datatype": {
+                "module": {
+                  "address": "sui",
+                  "name": "object"
+                },
+                "name": "ID",
+                "type_arguments": []
+              }
+            }
+          }
+        }
+      }
+    },
+    "PartyLeftGroupEvent": {
+      "index": 7,
+      "doc": " Emitted when a party leaves a group of its own accord (authorized by the\n member's own admin cap). Distinct from `PartyRemovedFromGroupEvent` so\n indexers can tell departure from eviction.",
+      "attributes": [],
+      "abilities": [
+        "Copy",
+        "Drop"
+      ],
+      "type_parameters": [],
+      "fields": {
+        "positional_fields": false,
+        "fields": {
+          "group_id": {
+            "index": 0,
+            "doc": " ID of the group.",
+            "type_": {
+              "Datatype": {
+                "module": {
+                  "address": "sui",
+                  "name": "object"
+                },
+                "name": "ID",
+                "type_arguments": []
+              }
+            }
+          },
+          "member_id": {
+            "index": 1,
+            "doc": " ID of the party that left the group.",
+            "type_": {
+              "Datatype": {
+                "module": {
+                  "address": "sui",
+                  "name": "object"
+                },
+                "name": "ID",
+                "type_arguments": []
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "enums": {
+    "PartyKind": {
+      "index": 0,
+      "doc": " The type of self: individual person or group.",
+      "attributes": [],
+      "abilities": [
+        "Copy",
+        "Drop",
+        "Store"
+      ],
+      "type_parameters": [],
+      "variants": {
+        "Individual": {
+          "index": 0,
+          "doc": " A single person (artist, producer, etc.).",
+          "fields": {
+            "positional_fields": false,
+            "fields": {}
+          }
+        },
+        "Group": {
+          "index": 1,
+          "doc": " A group containing multiple individual parties.",
+          "fields": {
+            "positional_fields": true,
+            "fields": {
+              "pos0": {
+                "index": 0,
+                "doc": " Set of individual party IDs in this group.",
+                "type_": {
+                  "Datatype": {
+                    "module": {
+                      "address": "sui",
+                      "name": "vec_set"
+                    },
+                    "name": "VecSet",
+                    "type_arguments": [
+                      {
+                        "phantom": false,
+                        "argument": {
+                          "Datatype": {
+                            "module": {
+                              "address": "sui",
+                              "name": "object"
+                            },
+                            "name": "ID",
+                            "type_arguments": []
+                          }
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

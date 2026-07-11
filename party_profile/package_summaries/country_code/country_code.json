@@ -1,0 +1,155 @@
+{
+  "id": {
+    "address": "country_code",
+    "name": "country_code"
+  },
+  "doc": " `CountryCode` — a validated ISO 3166-1 alpha-2 country code (e.g. \"JP\").\n\n A sibling to `language_code`: a tiny value primitive that parses a raw string\n once, checking it against the officially-assigned alpha-2 set, and thereafter\n carries a type that is provably a real country code. Consumers store\n `CountryCode` (or `Option<CountryCode>` / `vector<CountryCode>`) and never\n re-validate. The set lives in bytecode via a macro — no on-chain state.",
+  "immediate_dependencies": [
+    {
+      "address": "std",
+      "name": "string"
+    },
+    {
+      "address": "std",
+      "name": "vector"
+    }
+  ],
+  "attributes": [],
+  "functions": {
+    "new": {
+      "source_index": 0,
+      "index": 0,
+      "doc": " Creates a `CountryCode` from a string. Aborts unless `code` is an assigned\n ISO 3166-1 alpha-2 code (two uppercase letters).",
+      "attributes": [],
+      "visibility": "Public",
+      "entry": false,
+      "type_parameters": [],
+      "parameters": [
+        {
+          "name": "code",
+          "type_": {
+            "Datatype": {
+              "module": {
+                "address": "std",
+                "name": "string"
+              },
+              "name": "String",
+              "type_arguments": []
+            }
+          }
+        }
+      ],
+      "return_": [
+        {
+          "Datatype": {
+            "module": {
+              "address": "country_code",
+              "name": "country_code"
+            },
+            "name": "CountryCode",
+            "type_arguments": []
+          }
+        }
+      ]
+    },
+    "code": {
+      "source_index": 1,
+      "index": 1,
+      "doc": " Returns the underlying code string.",
+      "attributes": [],
+      "visibility": "Public",
+      "entry": false,
+      "type_parameters": [],
+      "parameters": [
+        {
+          "name": "country_code",
+          "type_": {
+            "Reference": [
+              false,
+              {
+                "Datatype": {
+                  "module": {
+                    "address": "country_code",
+                    "name": "country_code"
+                  },
+                  "name": "CountryCode",
+                  "type_arguments": []
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "return_": [
+        {
+          "Datatype": {
+            "module": {
+              "address": "std",
+              "name": "string"
+            },
+            "name": "String",
+            "type_arguments": []
+          }
+        }
+      ]
+    },
+    "country_codes": {
+      "source_index": 2,
+      "index": 18446744073709551615,
+      "doc": " All 249 officially-assigned ISO 3166-1 alpha-2 codes.",
+      "attributes": [],
+      "visibility": "Private",
+      "entry": false,
+      "macro_": true,
+      "type_parameters": [],
+      "parameters": [],
+      "return_": [
+        {
+          "vector": {
+            "Datatype": {
+              "module": {
+                "address": "std",
+                "name": "string"
+              },
+              "name": "String",
+              "type_arguments": []
+            }
+          }
+        }
+      ]
+    }
+  },
+  "structs": {
+    "CountryCode": {
+      "index": 0,
+      "doc": null,
+      "attributes": [],
+      "abilities": [
+        "Copy",
+        "Drop",
+        "Store"
+      ],
+      "type_parameters": [],
+      "fields": {
+        "positional_fields": true,
+        "fields": {
+          "pos0": {
+            "index": 0,
+            "doc": null,
+            "type_": {
+              "Datatype": {
+                "module": {
+                  "address": "std",
+                  "name": "string"
+                },
+                "name": "String",
+                "type_arguments": []
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "enums": {}
+}

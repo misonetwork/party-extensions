@@ -1,0 +1,1132 @@
+{
+  "id": {
+    "address": "party_profile",
+    "name": "party_profile"
+  },
+  "doc": " A party's editable profile card — the free-form identity fields a profile\n page renders.\n\n Stored as a single `Profile` dynamic field on the party's UID, gated by the\n `PartyAdminCap`; views are permissionless. Deliberately holds only cohesive\n identity fields — typed or collection-shaped concerns (roles, tags, genres,\n media, links) each live in their own extension. `country` and `languages` use\n validated code primitives (`country_code`, `language_code`), so a stored value\n is always a real code. The party's `name` is NOT duplicated here — it lives on\n the core `Party` (`party::set_name`) — and the join date comes from the party's\n creation event (the indexer has it for free).",
+  "immediate_dependencies": [
+    {
+      "address": "country_code",
+      "name": "country_code"
+    },
+    {
+      "address": "language_code",
+      "name": "language_code"
+    },
+    {
+      "address": "miso_party",
+      "name": "party"
+    },
+    {
+      "address": "std",
+      "name": "option"
+    },
+    {
+      "address": "std",
+      "name": "string"
+    },
+    {
+      "address": "sui",
+      "name": "dynamic_field"
+    },
+    {
+      "address": "sui",
+      "name": "event"
+    },
+    {
+      "address": "sui",
+      "name": "object"
+    }
+  ],
+  "attributes": [],
+  "functions": {
+    "set_profile": {
+      "source_index": 0,
+      "index": 0,
+      "doc": " Sets (creates or replaces) the party's whole profile.",
+      "attributes": [],
+      "visibility": "Public",
+      "entry": false,
+      "type_parameters": [],
+      "parameters": [
+        {
+          "name": "self",
+          "type_": {
+            "Reference": [
+              true,
+              {
+                "Datatype": {
+                  "module": {
+                    "address": "miso_party",
+                    "name": "party"
+                  },
+                  "name": "Party",
+                  "type_arguments": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "name": "cap",
+          "type_": {
+            "Reference": [
+              false,
+              {
+                "Datatype": {
+                  "module": {
+                    "address": "miso_party",
+                    "name": "party"
+                  },
+                  "name": "PartyAdminCap",
+                  "type_arguments": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "name": "bio_short",
+          "type_": {
+            "Datatype": {
+              "module": {
+                "address": "std",
+                "name": "string"
+              },
+              "name": "String",
+              "type_arguments": []
+            }
+          }
+        },
+        {
+          "name": "bio_long",
+          "type_": {
+            "Datatype": {
+              "module": {
+                "address": "std",
+                "name": "option"
+              },
+              "name": "Option",
+              "type_arguments": [
+                {
+                  "phantom": false,
+                  "argument": {
+                    "Datatype": {
+                      "module": {
+                        "address": "std",
+                        "name": "string"
+                      },
+                      "name": "String",
+                      "type_arguments": []
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "country",
+          "type_": {
+            "Datatype": {
+              "module": {
+                "address": "std",
+                "name": "option"
+              },
+              "name": "Option",
+              "type_arguments": [
+                {
+                  "phantom": false,
+                  "argument": {
+                    "Datatype": {
+                      "module": {
+                        "address": "country_code",
+                        "name": "country_code"
+                      },
+                      "name": "CountryCode",
+                      "type_arguments": []
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "languages",
+          "type_": {
+            "vector": {
+              "Datatype": {
+                "module": {
+                  "address": "language_code",
+                  "name": "language_code"
+                },
+                "name": "LanguageCode",
+                "type_arguments": []
+              }
+            }
+          }
+        }
+      ],
+      "return_": []
+    },
+    "set_bio_short": {
+      "source_index": 1,
+      "index": 1,
+      "doc": " Updates the short bio of an existing profile. Aborts if no profile is set.",
+      "attributes": [],
+      "visibility": "Public",
+      "entry": false,
+      "type_parameters": [],
+      "parameters": [
+        {
+          "name": "self",
+          "type_": {
+            "Reference": [
+              true,
+              {
+                "Datatype": {
+                  "module": {
+                    "address": "miso_party",
+                    "name": "party"
+                  },
+                  "name": "Party",
+                  "type_arguments": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "name": "cap",
+          "type_": {
+            "Reference": [
+              false,
+              {
+                "Datatype": {
+                  "module": {
+                    "address": "miso_party",
+                    "name": "party"
+                  },
+                  "name": "PartyAdminCap",
+                  "type_arguments": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "name": "bio_short",
+          "type_": {
+            "Datatype": {
+              "module": {
+                "address": "std",
+                "name": "string"
+              },
+              "name": "String",
+              "type_arguments": []
+            }
+          }
+        }
+      ],
+      "return_": []
+    },
+    "set_bio_long": {
+      "source_index": 2,
+      "index": 2,
+      "doc": " Sets or clears the long bio of an existing profile. Aborts if no profile is set.",
+      "attributes": [],
+      "visibility": "Public",
+      "entry": false,
+      "type_parameters": [],
+      "parameters": [
+        {
+          "name": "self",
+          "type_": {
+            "Reference": [
+              true,
+              {
+                "Datatype": {
+                  "module": {
+                    "address": "miso_party",
+                    "name": "party"
+                  },
+                  "name": "Party",
+                  "type_arguments": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "name": "cap",
+          "type_": {
+            "Reference": [
+              false,
+              {
+                "Datatype": {
+                  "module": {
+                    "address": "miso_party",
+                    "name": "party"
+                  },
+                  "name": "PartyAdminCap",
+                  "type_arguments": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "name": "bio_long",
+          "type_": {
+            "Datatype": {
+              "module": {
+                "address": "std",
+                "name": "option"
+              },
+              "name": "Option",
+              "type_arguments": [
+                {
+                  "phantom": false,
+                  "argument": {
+                    "Datatype": {
+                      "module": {
+                        "address": "std",
+                        "name": "string"
+                      },
+                      "name": "String",
+                      "type_arguments": []
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "return_": []
+    },
+    "set_country": {
+      "source_index": 3,
+      "index": 3,
+      "doc": " Sets or clears the country of an existing profile. Aborts if no profile is set.",
+      "attributes": [],
+      "visibility": "Public",
+      "entry": false,
+      "type_parameters": [],
+      "parameters": [
+        {
+          "name": "self",
+          "type_": {
+            "Reference": [
+              true,
+              {
+                "Datatype": {
+                  "module": {
+                    "address": "miso_party",
+                    "name": "party"
+                  },
+                  "name": "Party",
+                  "type_arguments": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "name": "cap",
+          "type_": {
+            "Reference": [
+              false,
+              {
+                "Datatype": {
+                  "module": {
+                    "address": "miso_party",
+                    "name": "party"
+                  },
+                  "name": "PartyAdminCap",
+                  "type_arguments": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "name": "country",
+          "type_": {
+            "Datatype": {
+              "module": {
+                "address": "std",
+                "name": "option"
+              },
+              "name": "Option",
+              "type_arguments": [
+                {
+                  "phantom": false,
+                  "argument": {
+                    "Datatype": {
+                      "module": {
+                        "address": "country_code",
+                        "name": "country_code"
+                      },
+                      "name": "CountryCode",
+                      "type_arguments": []
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "return_": []
+    },
+    "set_languages": {
+      "source_index": 4,
+      "index": 4,
+      "doc": " Replaces the language tags of an existing profile. Aborts if no profile is set.",
+      "attributes": [],
+      "visibility": "Public",
+      "entry": false,
+      "type_parameters": [],
+      "parameters": [
+        {
+          "name": "self",
+          "type_": {
+            "Reference": [
+              true,
+              {
+                "Datatype": {
+                  "module": {
+                    "address": "miso_party",
+                    "name": "party"
+                  },
+                  "name": "Party",
+                  "type_arguments": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "name": "cap",
+          "type_": {
+            "Reference": [
+              false,
+              {
+                "Datatype": {
+                  "module": {
+                    "address": "miso_party",
+                    "name": "party"
+                  },
+                  "name": "PartyAdminCap",
+                  "type_arguments": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "name": "languages",
+          "type_": {
+            "vector": {
+              "Datatype": {
+                "module": {
+                  "address": "language_code",
+                  "name": "language_code"
+                },
+                "name": "LanguageCode",
+                "type_arguments": []
+              }
+            }
+          }
+        }
+      ],
+      "return_": []
+    },
+    "clear_profile": {
+      "source_index": 5,
+      "index": 5,
+      "doc": " Removes the party's profile. No-op if none is set.",
+      "attributes": [],
+      "visibility": "Public",
+      "entry": false,
+      "type_parameters": [],
+      "parameters": [
+        {
+          "name": "self",
+          "type_": {
+            "Reference": [
+              true,
+              {
+                "Datatype": {
+                  "module": {
+                    "address": "miso_party",
+                    "name": "party"
+                  },
+                  "name": "Party",
+                  "type_arguments": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "name": "cap",
+          "type_": {
+            "Reference": [
+              false,
+              {
+                "Datatype": {
+                  "module": {
+                    "address": "miso_party",
+                    "name": "party"
+                  },
+                  "name": "PartyAdminCap",
+                  "type_arguments": []
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "return_": []
+    },
+    "has_profile": {
+      "source_index": 6,
+      "index": 6,
+      "doc": " Whether the party has a profile.",
+      "attributes": [],
+      "visibility": "Public",
+      "entry": false,
+      "type_parameters": [],
+      "parameters": [
+        {
+          "name": "self",
+          "type_": {
+            "Reference": [
+              false,
+              {
+                "Datatype": {
+                  "module": {
+                    "address": "miso_party",
+                    "name": "party"
+                  },
+                  "name": "Party",
+                  "type_arguments": []
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "return_": [
+        "bool"
+      ]
+    },
+    "profile": {
+      "source_index": 7,
+      "index": 7,
+      "doc": " Borrows the party's profile. Aborts if none is set.",
+      "attributes": [],
+      "visibility": "Public",
+      "entry": false,
+      "type_parameters": [],
+      "parameters": [
+        {
+          "name": "self",
+          "type_": {
+            "Reference": [
+              false,
+              {
+                "Datatype": {
+                  "module": {
+                    "address": "miso_party",
+                    "name": "party"
+                  },
+                  "name": "Party",
+                  "type_arguments": []
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "return_": [
+        {
+          "Reference": [
+            false,
+            {
+              "Datatype": {
+                "module": {
+                  "address": "party_profile",
+                  "name": "party_profile"
+                },
+                "name": "Profile",
+                "type_arguments": []
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "bio_short": {
+      "source_index": 8,
+      "index": 8,
+      "doc": null,
+      "attributes": [],
+      "visibility": "Public",
+      "entry": false,
+      "type_parameters": [],
+      "parameters": [
+        {
+          "name": "self",
+          "type_": {
+            "Reference": [
+              false,
+              {
+                "Datatype": {
+                  "module": {
+                    "address": "party_profile",
+                    "name": "party_profile"
+                  },
+                  "name": "Profile",
+                  "type_arguments": []
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "return_": [
+        {
+          "Datatype": {
+            "module": {
+              "address": "std",
+              "name": "string"
+            },
+            "name": "String",
+            "type_arguments": []
+          }
+        }
+      ]
+    },
+    "bio_long": {
+      "source_index": 9,
+      "index": 9,
+      "doc": null,
+      "attributes": [],
+      "visibility": "Public",
+      "entry": false,
+      "type_parameters": [],
+      "parameters": [
+        {
+          "name": "self",
+          "type_": {
+            "Reference": [
+              false,
+              {
+                "Datatype": {
+                  "module": {
+                    "address": "party_profile",
+                    "name": "party_profile"
+                  },
+                  "name": "Profile",
+                  "type_arguments": []
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "return_": [
+        {
+          "Datatype": {
+            "module": {
+              "address": "std",
+              "name": "option"
+            },
+            "name": "Option",
+            "type_arguments": [
+              {
+                "phantom": false,
+                "argument": {
+                  "Datatype": {
+                    "module": {
+                      "address": "std",
+                      "name": "string"
+                    },
+                    "name": "String",
+                    "type_arguments": []
+                  }
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "country": {
+      "source_index": 10,
+      "index": 10,
+      "doc": null,
+      "attributes": [],
+      "visibility": "Public",
+      "entry": false,
+      "type_parameters": [],
+      "parameters": [
+        {
+          "name": "self",
+          "type_": {
+            "Reference": [
+              false,
+              {
+                "Datatype": {
+                  "module": {
+                    "address": "party_profile",
+                    "name": "party_profile"
+                  },
+                  "name": "Profile",
+                  "type_arguments": []
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "return_": [
+        {
+          "Datatype": {
+            "module": {
+              "address": "std",
+              "name": "option"
+            },
+            "name": "Option",
+            "type_arguments": [
+              {
+                "phantom": false,
+                "argument": {
+                  "Datatype": {
+                    "module": {
+                      "address": "country_code",
+                      "name": "country_code"
+                    },
+                    "name": "CountryCode",
+                    "type_arguments": []
+                  }
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "languages": {
+      "source_index": 11,
+      "index": 11,
+      "doc": null,
+      "attributes": [],
+      "visibility": "Public",
+      "entry": false,
+      "type_parameters": [],
+      "parameters": [
+        {
+          "name": "self",
+          "type_": {
+            "Reference": [
+              false,
+              {
+                "Datatype": {
+                  "module": {
+                    "address": "party_profile",
+                    "name": "party_profile"
+                  },
+                  "name": "Profile",
+                  "type_arguments": []
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "return_": [
+        {
+          "vector": {
+            "Datatype": {
+              "module": {
+                "address": "language_code",
+                "name": "language_code"
+              },
+              "name": "LanguageCode",
+              "type_arguments": []
+            }
+          }
+        }
+      ]
+    },
+    "borrow_profile_mut": {
+      "source_index": 12,
+      "index": 12,
+      "doc": null,
+      "attributes": [],
+      "visibility": "Private",
+      "entry": false,
+      "type_parameters": [],
+      "parameters": [
+        {
+          "name": "self",
+          "type_": {
+            "Reference": [
+              true,
+              {
+                "Datatype": {
+                  "module": {
+                    "address": "miso_party",
+                    "name": "party"
+                  },
+                  "name": "Party",
+                  "type_arguments": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "name": "cap",
+          "type_": {
+            "Reference": [
+              false,
+              {
+                "Datatype": {
+                  "module": {
+                    "address": "miso_party",
+                    "name": "party"
+                  },
+                  "name": "PartyAdminCap",
+                  "type_arguments": []
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "return_": [
+        {
+          "Reference": [
+            true,
+            {
+              "Datatype": {
+                "module": {
+                  "address": "party_profile",
+                  "name": "party_profile"
+                },
+                "name": "Profile",
+                "type_arguments": []
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "validate_bio_short": {
+      "source_index": 13,
+      "index": 13,
+      "doc": null,
+      "attributes": [],
+      "visibility": "Private",
+      "entry": false,
+      "type_parameters": [],
+      "parameters": [
+        {
+          "name": "bio_short",
+          "type_": {
+            "Reference": [
+              false,
+              {
+                "Datatype": {
+                  "module": {
+                    "address": "std",
+                    "name": "string"
+                  },
+                  "name": "String",
+                  "type_arguments": []
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "return_": []
+    },
+    "validate_optional": {
+      "source_index": 14,
+      "index": 14,
+      "doc": null,
+      "attributes": [],
+      "visibility": "Private",
+      "entry": false,
+      "type_parameters": [],
+      "parameters": [
+        {
+          "name": "opt",
+          "type_": {
+            "Reference": [
+              false,
+              {
+                "Datatype": {
+                  "module": {
+                    "address": "std",
+                    "name": "option"
+                  },
+                  "name": "Option",
+                  "type_arguments": [
+                    {
+                      "phantom": false,
+                      "argument": {
+                        "Datatype": {
+                          "module": {
+                            "address": "std",
+                            "name": "string"
+                          },
+                          "name": "String",
+                          "type_arguments": []
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        {
+          "name": "max",
+          "type_": "u64"
+        },
+        {
+          "name": "empty_err",
+          "type_": "u64"
+        },
+        {
+          "name": "long_err",
+          "type_": "u64"
+        }
+      ],
+      "return_": []
+    },
+    "validate_languages": {
+      "source_index": 15,
+      "index": 15,
+      "doc": null,
+      "attributes": [],
+      "visibility": "Private",
+      "entry": false,
+      "type_parameters": [],
+      "parameters": [
+        {
+          "name": "languages",
+          "type_": {
+            "Reference": [
+              false,
+              {
+                "vector": {
+                  "Datatype": {
+                    "module": {
+                      "address": "language_code",
+                      "name": "language_code"
+                    },
+                    "name": "LanguageCode",
+                    "type_arguments": []
+                  }
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "return_": []
+    }
+  },
+  "structs": {
+    "ProfileKey": {
+      "index": 0,
+      "doc": " Dynamic-field key for a party's profile.",
+      "attributes": [],
+      "abilities": [
+        "Copy",
+        "Drop",
+        "Store"
+      ],
+      "type_parameters": [],
+      "fields": {
+        "positional_fields": true,
+        "fields": {
+          "dummy_field": {
+            "index": 0,
+            "type_": "bool"
+          }
+        }
+      }
+    },
+    "Profile": {
+      "index": 1,
+      "doc": " A party's profile card. Held as a dynamic-field value, not a standalone\n object.",
+      "attributes": [],
+      "abilities": [
+        "Drop",
+        "Store"
+      ],
+      "type_parameters": [],
+      "fields": {
+        "positional_fields": false,
+        "fields": {
+          "bio_short": {
+            "index": 0,
+            "doc": null,
+            "type_": {
+              "Datatype": {
+                "module": {
+                  "address": "std",
+                  "name": "string"
+                },
+                "name": "String",
+                "type_arguments": []
+              }
+            }
+          },
+          "bio_long": {
+            "index": 1,
+            "doc": null,
+            "type_": {
+              "Datatype": {
+                "module": {
+                  "address": "std",
+                  "name": "option"
+                },
+                "name": "Option",
+                "type_arguments": [
+                  {
+                    "phantom": false,
+                    "argument": {
+                      "Datatype": {
+                        "module": {
+                          "address": "std",
+                          "name": "string"
+                        },
+                        "name": "String",
+                        "type_arguments": []
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "country": {
+            "index": 2,
+            "doc": null,
+            "type_": {
+              "Datatype": {
+                "module": {
+                  "address": "std",
+                  "name": "option"
+                },
+                "name": "Option",
+                "type_arguments": [
+                  {
+                    "phantom": false,
+                    "argument": {
+                      "Datatype": {
+                        "module": {
+                          "address": "country_code",
+                          "name": "country_code"
+                        },
+                        "name": "CountryCode",
+                        "type_arguments": []
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "languages": {
+            "index": 3,
+            "doc": null,
+            "type_": {
+              "vector": {
+                "Datatype": {
+                  "module": {
+                    "address": "language_code",
+                    "name": "language_code"
+                  },
+                  "name": "LanguageCode",
+                  "type_arguments": []
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "ProfileSetEvent": {
+      "index": 2,
+      "doc": " Emitted when a party's profile is set or updated.",
+      "attributes": [],
+      "abilities": [
+        "Copy",
+        "Drop"
+      ],
+      "type_parameters": [],
+      "fields": {
+        "positional_fields": false,
+        "fields": {
+          "party_id": {
+            "index": 0,
+            "doc": null,
+            "type_": {
+              "Datatype": {
+                "module": {
+                  "address": "sui",
+                  "name": "object"
+                },
+                "name": "ID",
+                "type_arguments": []
+              }
+            }
+          }
+        }
+      }
+    },
+    "ProfileClearedEvent": {
+      "index": 3,
+      "doc": " Emitted when a party's profile is cleared.",
+      "attributes": [],
+      "abilities": [
+        "Copy",
+        "Drop"
+      ],
+      "type_parameters": [],
+      "fields": {
+        "positional_fields": false,
+        "fields": {
+          "party_id": {
+            "index": 0,
+            "doc": null,
+            "type_": {
+              "Datatype": {
+                "module": {
+                  "address": "sui",
+                  "name": "object"
+                },
+                "name": "ID",
+                "type_arguments": []
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "enums": {}
+}

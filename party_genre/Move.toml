@@ -5,5 +5,5 @@ license = "Apache 2.0"
 authors = ["Miso Labs, Inc. (build@miso.network)"]
 
 [dependencies]
-miso_party = { local = "../../miso-party" }
-genre = { local = "../../miso-protocol-extensions/lib/genre" }
+miso_party = { git = "https://github.com/misonetwork/miso-party.git", rev = "main" }
+genre = { git = "https://github.com/misonetwork/miso-protocol-extensions.git", subdir = "lib/genre", rev = "main" }

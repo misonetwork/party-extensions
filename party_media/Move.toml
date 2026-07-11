@@ -5,5 +5,5 @@ license = "Apache 2.0"
 authors = ["Miso Labs, Inc. (build@miso.network)"]
 
 [dependencies]
-miso_party = { local = "../../miso-party" }
+miso_party = { git = "https://github.com/misonetwork/miso-party.git", rev = "main" }
 ori = { git = "https://github.com/unconfirmedlabs/ori.git", subdir = "move", rev = "84d5da270e5860b144961dd4665690238b49560c" }

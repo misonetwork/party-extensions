@@ -17,19 +17,19 @@ manifest_digest = "7AFB66695545775FBFBB2D3078ADFD084244D5002392E837FDE21D9EA1C6D
 deps = { MoveStdlib = "MoveStdlib" }
 
 [pinned.testnet.country_code]
-source = { local = "../../../unconfirmedlabs/country_code" }
+source = { git = "https://github.com/unconfirmedlabs/country_code.git", subdir = ".", rev = "23fad25f08d871d05b55aee390516ba7e5931b4a" }
 use_environment = "testnet"
 manifest_digest = "5745706258F61D6CE210904B3E6AE87A73CE9D31A6F93BE4718C442529332A87"
 deps = { std = "MoveStdlib", sui = "Sui" }
 
 [pinned.testnet.language_code]
-source = { local = "../../../unconfirmedlabs/language_code" }
+source = { git = "https://github.com/unconfirmedlabs/language_code.git", subdir = ".", rev = "17a5e84ac77cf3be6f8a72eddb3c0570c455c37f" }
 use_environment = "testnet"
 manifest_digest = "5745706258F61D6CE210904B3E6AE87A73CE9D31A6F93BE4718C442529332A87"
 deps = { std = "MoveStdlib", sui = "Sui" }
 
 [pinned.testnet.miso_party]
-source = { local = "../../miso-party" }
+source = { git = "https://github.com/misonetwork/miso-party.git", subdir = ".", rev = "d960e248e9a5c7ed470d27d77fe23be9ce790e34" }
 use_environment = "testnet"
 manifest_digest = "5745706258F61D6CE210904B3E6AE87A73CE9D31A6F93BE4718C442529332A87"
 deps = { std = "MoveStdlib", sui = "Sui" }
@@ -37,5 +37,5 @@ deps = { std = "MoveStdlib", sui = "Sui" }
 [pinned.testnet.party_profile]
 source = { root = true }
 use_environment = "testnet"
-manifest_digest = "154B0A5B6D1BCC1B9D4F1F34C72472C14FF4BFCD9B746A9B9D8499D07F6015D4"
+manifest_digest = "1A2F1F4513C130AD674BFF3B7F61F1047798A6E934700F85C881A7BBC31E9EBB"
 deps = { country_code = "country_code", language_code = "language_code", miso_party = "miso_party", std = "MoveStdlib", sui = "Sui" }

@@ -62,6 +62,11 @@ public struct TagRemovedEvent has copy, drop {
     tag: String,
 }
 
+/// Emitted when a party's entire tag set is removed.
+public struct TagsClearedEvent has copy, drop {
+    party_id: ID,
+}
+
 // === Write API ===
 
 /// Adds a tag to the party. Aborts if empty, too long, already present, or the
@@ -90,9 +95,11 @@ public fun remove_tag(self: &mut Party, cap: &PartyAdminCap, tag: String) {
 
 /// Removes the party's entire tag set. No-op if none is set.
 public fun clear_tags(self: &mut Party, cap: &PartyAdminCap) {
+    let party_id = self.id();
     let uid = self.uid_mut(cap);
     if (df::exists(uid, TagsKey())) {
         let PartyTags { .. } = df::remove(uid, TagsKey());
+        emit(TagsClearedEvent { party_id });
     }
 }
 

@@ -58,6 +58,11 @@ public struct GenreRemovedEvent has copy, drop {
     genre_id: ID,
 }
 
+/// Emitted when a party's entire genre set is removed.
+public struct GenresClearedEvent has copy, drop {
+    party_id: ID,
+}
+
 // === Write API ===
 
 /// Adds a genre to the party. Aborts if already present or the max is reached.
@@ -85,9 +90,11 @@ public fun remove_genre(self: &mut Party, cap: &PartyAdminCap, genre_id: ID) {
 
 /// Removes the party's entire genre set. No-op if none is set.
 public fun clear_genres(self: &mut Party, cap: &PartyAdminCap) {
+    let party_id = self.id();
     let uid = self.uid_mut(cap);
     if (df::exists(uid, GenresKey())) {
         let PartyGenres { .. } = df::remove(uid, GenresKey());
+        emit(GenresClearedEvent { party_id });
     }
 }
 

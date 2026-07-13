@@ -1,0 +1,247 @@
+{
+  "id": {
+    "address": "miso_party",
+    "name": "credit"
+  },
+  "doc": " Represents a party's credit on a work or activity.\n A credit pairs a display name with one or more roles, identifying how\n a party contributed to the work.",
+  "immediate_dependencies": [
+    {
+      "address": "std",
+      "name": "string"
+    }
+  ],
+  "attributes": [],
+  "functions": {
+    "new": {
+      "source_index": 0,
+      "index": 0,
+      "doc": " Creates a new credit with the given display name and roles.\n Requires 1 to `MAX_ROLES` roles; aborts with `EDuplicateRoles` if roles\n contains duplicates.",
+      "attributes": [],
+      "visibility": "Public",
+      "entry": false,
+      "type_parameters": [
+        {
+          "name": "Role",
+          "constraints": [
+            "Copy",
+            "Drop",
+            "Store"
+          ]
+        }
+      ],
+      "parameters": [
+        {
+          "name": "display_name",
+          "type_": {
+            "Datatype": {
+              "module": {
+                "address": "std",
+                "name": "string"
+              },
+              "name": "String",
+              "type_arguments": []
+            }
+          }
+        },
+        {
+          "name": "roles",
+          "type_": {
+            "vector": {
+              "NamedTypeParameter": "Role"
+            }
+          }
+        }
+      ],
+      "return_": [
+        {
+          "Datatype": {
+            "module": {
+              "address": "miso_party",
+              "name": "credit"
+            },
+            "name": "Credit",
+            "type_arguments": [
+              {
+                "phantom": false,
+                "argument": {
+                  "NamedTypeParameter": "Role"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "display_name": {
+      "source_index": 1,
+      "index": 1,
+      "doc": " Returns the display name for this credit.",
+      "attributes": [],
+      "visibility": "Public",
+      "entry": false,
+      "type_parameters": [
+        {
+          "name": "Role",
+          "constraints": [
+            "Copy",
+            "Drop",
+            "Store"
+          ]
+        }
+      ],
+      "parameters": [
+        {
+          "name": "self",
+          "type_": {
+            "Reference": [
+              false,
+              {
+                "Datatype": {
+                  "module": {
+                    "address": "miso_party",
+                    "name": "credit"
+                  },
+                  "name": "Credit",
+                  "type_arguments": [
+                    {
+                      "phantom": false,
+                      "argument": {
+                        "NamedTypeParameter": "Role"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "return_": [
+        {
+          "Reference": [
+            false,
+            {
+              "Datatype": {
+                "module": {
+                  "address": "std",
+                  "name": "string"
+                },
+                "name": "String",
+                "type_arguments": []
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "roles": {
+      "source_index": 2,
+      "index": 2,
+      "doc": " Returns a reference to the roles assigned in this credit.",
+      "attributes": [],
+      "visibility": "Public",
+      "entry": false,
+      "type_parameters": [
+        {
+          "name": "Role",
+          "constraints": [
+            "Copy",
+            "Drop",
+            "Store"
+          ]
+        }
+      ],
+      "parameters": [
+        {
+          "name": "self",
+          "type_": {
+            "Reference": [
+              false,
+              {
+                "Datatype": {
+                  "module": {
+                    "address": "miso_party",
+                    "name": "credit"
+                  },
+                  "name": "Credit",
+                  "type_arguments": [
+                    {
+                      "phantom": false,
+                      "argument": {
+                        "NamedTypeParameter": "Role"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "return_": [
+        {
+          "Reference": [
+            false,
+            {
+              "vector": {
+                "NamedTypeParameter": "Role"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "structs": {
+    "Credit": {
+      "index": 0,
+      "doc": " A credit attributing roles to a party on a work.\n Generic over the role type to support domain-specific roles.",
+      "attributes": [],
+      "abilities": [
+        "Copy",
+        "Drop",
+        "Store"
+      ],
+      "type_parameters": [
+        {
+          "phantom": false,
+          "name": "Role",
+          "constraints": [
+            "Copy",
+            "Drop",
+            "Store"
+          ]
+        }
+      ],
+      "fields": {
+        "positional_fields": false,
+        "fields": {
+          "display_name": {
+            "index": 0,
+            "doc": " Human-readable name to display for this credit.",
+            "type_": {
+              "Datatype": {
+                "module": {
+                  "address": "std",
+                  "name": "string"
+                },
+                "name": "String",
+                "type_arguments": []
+              }
+            }
+          },
+          "roles": {
+            "index": 1,
+            "doc": " Roles assigned to the credited party.",
+            "type_": {
+              "vector": {
+                "NamedTypeParameter": "Role"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "enums": {}
+}

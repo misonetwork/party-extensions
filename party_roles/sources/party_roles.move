@@ -80,6 +80,11 @@ public struct RoleRemovedEvent has copy, drop {
     role: String,
 }
 
+/// Emitted when a party's entire role set is removed.
+public struct RolesClearedEvent has copy, drop {
+    party_id: ID,
+}
+
 // === Role constructors ===
 
 public fun artist(): ArtistRole { ArtistRole::Artist }
@@ -140,9 +145,11 @@ public fun remove_role(self: &mut Party, cap: &PartyAdminCap, role: ArtistRole) 
 
 /// Removes the party's entire role set. No-op if none is set.
 public fun clear_roles(self: &mut Party, cap: &PartyAdminCap) {
+    let party_id = self.id();
     let uid = self.uid_mut(cap);
     if (df::exists(uid, RolesKey())) {
         let PartyRoles { .. } = df::remove(uid, RolesKey());
+        emit(RolesClearedEvent { party_id });
     }
 }
 

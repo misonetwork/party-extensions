@@ -1,0 +1,311 @@
+{
+  "id": {
+    "address": "party_media",
+    "name": "party_media"
+  },
+  "doc": " Profile imagery for a party, stored as a single Walrus quilt.\n\n All of a party's images (avatar, header/cover, …) live together in one Walrus\n quilt — batching them under a single storage reservation is markedly cheaper\n than one blob each, which matters when the platform sponsors storage. Only the\n quilt's blob id is held on-chain, as a `Media` dynamic field on the party's\n UID, gated by the `PartyAdminCap`; views are permissionless.\n\n The chain is deliberately role-agnostic: which patch is the avatar vs the\n header is a client convention (quilt patch *identifiers*, e.g. \"avatar\" /\n \"header\"), derived off-chain — never stored here. Updating any image means\n re-storing the quilt and calling `set_media` with the new id.",
+  "immediate_dependencies": [
+    {
+      "address": "miso_party",
+      "name": "party"
+    },
+    {
+      "address": "std",
+      "name": "option"
+    },
+    {
+      "address": "sui",
+      "name": "dynamic_field"
+    },
+    {
+      "address": "sui",
+      "name": "event"
+    },
+    {
+      "address": "sui",
+      "name": "object"
+    }
+  ],
+  "attributes": [],
+  "functions": {
+    "set_media": {
+      "source_index": 0,
+      "index": 0,
+      "doc": " Sets (or replaces) the party's media quilt.",
+      "attributes": [],
+      "visibility": "Public",
+      "entry": false,
+      "type_parameters": [],
+      "parameters": [
+        {
+          "name": "self",
+          "type_": {
+            "Reference": [
+              true,
+              {
+                "Datatype": {
+                  "module": {
+                    "address": "miso_party",
+                    "name": "party"
+                  },
+                  "name": "Party",
+                  "type_arguments": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "name": "cap",
+          "type_": {
+            "Reference": [
+              false,
+              {
+                "Datatype": {
+                  "module": {
+                    "address": "miso_party",
+                    "name": "party"
+                  },
+                  "name": "PartyAdminCap",
+                  "type_arguments": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "name": "quilt",
+          "type_": "u256"
+        }
+      ],
+      "return_": []
+    },
+    "clear_media": {
+      "source_index": 1,
+      "index": 1,
+      "doc": " Removes the party's media. No-op if none is set.",
+      "attributes": [],
+      "visibility": "Public",
+      "entry": false,
+      "type_parameters": [],
+      "parameters": [
+        {
+          "name": "self",
+          "type_": {
+            "Reference": [
+              true,
+              {
+                "Datatype": {
+                  "module": {
+                    "address": "miso_party",
+                    "name": "party"
+                  },
+                  "name": "Party",
+                  "type_arguments": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "name": "cap",
+          "type_": {
+            "Reference": [
+              false,
+              {
+                "Datatype": {
+                  "module": {
+                    "address": "miso_party",
+                    "name": "party"
+                  },
+                  "name": "PartyAdminCap",
+                  "type_arguments": []
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "return_": []
+    },
+    "has_media": {
+      "source_index": 2,
+      "index": 2,
+      "doc": " Whether the party has media set.",
+      "attributes": [],
+      "visibility": "Public",
+      "entry": false,
+      "type_parameters": [],
+      "parameters": [
+        {
+          "name": "self",
+          "type_": {
+            "Reference": [
+              false,
+              {
+                "Datatype": {
+                  "module": {
+                    "address": "miso_party",
+                    "name": "party"
+                  },
+                  "name": "Party",
+                  "type_arguments": []
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "return_": [
+        "bool"
+      ]
+    },
+    "quilt": {
+      "source_index": 3,
+      "index": 3,
+      "doc": " The party's media quilt id, if set.",
+      "attributes": [],
+      "visibility": "Public",
+      "entry": false,
+      "type_parameters": [],
+      "parameters": [
+        {
+          "name": "self",
+          "type_": {
+            "Reference": [
+              false,
+              {
+                "Datatype": {
+                  "module": {
+                    "address": "miso_party",
+                    "name": "party"
+                  },
+                  "name": "Party",
+                  "type_arguments": []
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "return_": [
+        {
+          "Datatype": {
+            "module": {
+              "address": "std",
+              "name": "option"
+            },
+            "name": "Option",
+            "type_arguments": [
+              {
+                "phantom": false,
+                "argument": "u256"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "structs": {
+    "MediaKey": {
+      "index": 0,
+      "doc": " Dynamic-field key for a party's media.",
+      "attributes": [],
+      "abilities": [
+        "Copy",
+        "Drop",
+        "Store"
+      ],
+      "type_parameters": [],
+      "fields": {
+        "positional_fields": true,
+        "fields": {
+          "dummy_field": {
+            "index": 0,
+            "type_": "bool"
+          }
+        }
+      }
+    },
+    "Media": {
+      "index": 1,
+      "doc": " A party's imagery. Held as a dynamic-field value.",
+      "attributes": [],
+      "abilities": [
+        "Drop",
+        "Store"
+      ],
+      "type_parameters": [],
+      "fields": {
+        "positional_fields": false,
+        "fields": {
+          "quilt": {
+            "index": 0,
+            "doc": " Walrus quilt blob id holding all of the party's images. Individual images\n are quilt patches addressed by identifier (\"avatar\", \"header\", …); those\n roles are a client convention, derived off-chain, not stored here.",
+            "type_": "u256"
+          }
+        }
+      }
+    },
+    "MediaSetEvent": {
+      "index": 2,
+      "doc": " Emitted when a party's media quilt is set or replaced.",
+      "attributes": [],
+      "abilities": [
+        "Copy",
+        "Drop"
+      ],
+      "type_parameters": [],
+      "fields": {
+        "positional_fields": false,
+        "fields": {
+          "party_id": {
+            "index": 0,
+            "doc": null,
+            "type_": {
+              "Datatype": {
+                "module": {
+                  "address": "sui",
+                  "name": "object"
+                },
+                "name": "ID",
+                "type_arguments": []
+              }
+            }
+          }
+        }
+      }
+    },
+    "MediaClearedEvent": {
+      "index": 3,
+      "doc": " Emitted when a party's media is removed.",
+      "attributes": [],
+      "abilities": [
+        "Copy",
+        "Drop"
+      ],
+      "type_parameters": [],
+      "fields": {
+        "positional_fields": false,
+        "fields": {
+          "party_id": {
+            "index": 0,
+            "doc": null,
+            "type_": {
+              "Datatype": {
+                "module": {
+                  "address": "sui",
+                  "name": "object"
+                },
+                "name": "ID",
+                "type_arguments": []
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "enums": {}
+}

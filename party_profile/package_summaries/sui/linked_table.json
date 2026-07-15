@@ -395,9 +395,161 @@
       ],
       "return_": []
     },
-    "borrow": {
+    "insert_before": {
       "source_index": 5,
       "index": 5,
+      "doc": " Inserts a key-value pair immediately before the entry with key `anchor: K`.\n If `anchor` is the front of the table, the newly inserted pair becomes the new front.\n Aborts with `sui::dynamic_field::EFieldDoesNotExist` if the table does not have an entry\n with the key `anchor: K`.\n Aborts with `sui::dynamic_field::EFieldAlreadyExists` if the table already has an entry\n with the key `k: K`.",
+      "attributes": [],
+      "visibility": "Public",
+      "entry": false,
+      "type_parameters": [
+        {
+          "name": "K",
+          "constraints": [
+            "Copy",
+            "Drop",
+            "Store"
+          ]
+        },
+        {
+          "name": "V",
+          "constraints": [
+            "Store"
+          ]
+        }
+      ],
+      "parameters": [
+        {
+          "name": "table",
+          "type_": {
+            "Reference": [
+              true,
+              {
+                "Datatype": {
+                  "module": {
+                    "address": "sui",
+                    "name": "linked_table"
+                  },
+                  "name": "LinkedTable",
+                  "type_arguments": [
+                    {
+                      "phantom": false,
+                      "argument": {
+                        "NamedTypeParameter": "K"
+                      }
+                    },
+                    {
+                      "phantom": true,
+                      "argument": {
+                        "NamedTypeParameter": "V"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        {
+          "name": "anchor",
+          "type_": {
+            "NamedTypeParameter": "K"
+          }
+        },
+        {
+          "name": "k",
+          "type_": {
+            "NamedTypeParameter": "K"
+          }
+        },
+        {
+          "name": "value",
+          "type_": {
+            "NamedTypeParameter": "V"
+          }
+        }
+      ],
+      "return_": []
+    },
+    "insert_after": {
+      "source_index": 6,
+      "index": 6,
+      "doc": " Inserts a key-value pair immediately after the entry with key `anchor: K`.\n If `anchor` is the back of the table, the newly inserted pair becomes the new back.\n Aborts with `sui::dynamic_field::EFieldDoesNotExist` if the table does not have an entry\n with the key `anchor: K`.\n Aborts with `sui::dynamic_field::EFieldAlreadyExists` if the table already has an entry\n with the key `k: K`.",
+      "attributes": [],
+      "visibility": "Public",
+      "entry": false,
+      "type_parameters": [
+        {
+          "name": "K",
+          "constraints": [
+            "Copy",
+            "Drop",
+            "Store"
+          ]
+        },
+        {
+          "name": "V",
+          "constraints": [
+            "Store"
+          ]
+        }
+      ],
+      "parameters": [
+        {
+          "name": "table",
+          "type_": {
+            "Reference": [
+              true,
+              {
+                "Datatype": {
+                  "module": {
+                    "address": "sui",
+                    "name": "linked_table"
+                  },
+                  "name": "LinkedTable",
+                  "type_arguments": [
+                    {
+                      "phantom": false,
+                      "argument": {
+                        "NamedTypeParameter": "K"
+                      }
+                    },
+                    {
+                      "phantom": true,
+                      "argument": {
+                        "NamedTypeParameter": "V"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        {
+          "name": "anchor",
+          "type_": {
+            "NamedTypeParameter": "K"
+          }
+        },
+        {
+          "name": "k",
+          "type_": {
+            "NamedTypeParameter": "K"
+          }
+        },
+        {
+          "name": "value",
+          "type_": {
+            "NamedTypeParameter": "V"
+          }
+        }
+      ],
+      "return_": []
+    },
+    "borrow": {
+      "source_index": 7,
+      "index": 7,
       "doc": " Immutable borrows the value associated with the key in the table `table: &LinkedTable<K, V>`.\n Aborts with `sui::dynamic_field::EFieldDoesNotExist` if the table does not have an entry with\n that key `k: K`.",
       "attributes": [
         {
@@ -480,8 +632,8 @@
       ]
     },
     "borrow_mut": {
-      "source_index": 6,
-      "index": 6,
+      "source_index": 8,
+      "index": 8,
       "doc": " Mutably borrows the value associated with the key in the table `table: &mut LinkedTable<K, V>`.\n Aborts with `sui::dynamic_field::EFieldDoesNotExist` if the table does not have an entry with\n that key `k: K`.",
       "attributes": [
         {
@@ -564,8 +716,8 @@
       ]
     },
     "prev": {
-      "source_index": 7,
-      "index": 7,
+      "source_index": 9,
+      "index": 9,
       "doc": " Borrows the key for the previous entry of the specified key `k: K` in the table\n `table: &LinkedTable<K, V>`. Returns None if the entry does not have a predecessor.\n Aborts with `sui::dynamic_field::EFieldDoesNotExist` if the table does not have an entry with\n that key `k: K`",
       "attributes": [],
       "visibility": "Public",
@@ -651,8 +803,8 @@
       ]
     },
     "next": {
-      "source_index": 8,
-      "index": 8,
+      "source_index": 10,
+      "index": 10,
       "doc": " Borrows the key for the next entry of the specified key `k: K` in the table\n `table: &LinkedTable<K, V>`. Returns None if the entry does not have a successor.\n Aborts with `sui::dynamic_field::EFieldDoesNotExist` if the table does not have an entry with\n that key `k: K`",
       "attributes": [],
       "visibility": "Public",
@@ -738,8 +890,8 @@
       ]
     },
     "remove": {
-      "source_index": 9,
-      "index": 9,
+      "source_index": 11,
+      "index": 11,
       "doc": " Removes the key-value pair in the table `table: &mut LinkedTable<K, V>` and returns the value.\n This splices the element out of the ordering.\n Aborts with `sui::dynamic_field::EFieldDoesNotExist` if the table does not have an entry with\n that key `k: K`. Note: this is also what happens when the table is empty.",
       "attributes": [],
       "visibility": "Public",
@@ -806,8 +958,8 @@
       ]
     },
     "pop_front": {
-      "source_index": 10,
-      "index": 10,
+      "source_index": 12,
+      "index": 12,
       "doc": " Removes the front of the table `table: &mut LinkedTable<K, V>`, returns the key and value.\n Aborts with `ETableIsEmpty` if the table is empty",
       "attributes": [],
       "visibility": "Public",
@@ -871,8 +1023,8 @@
       ]
     },
     "pop_back": {
-      "source_index": 11,
-      "index": 11,
+      "source_index": 13,
+      "index": 13,
       "doc": " Removes the back of the table `table: &mut LinkedTable<K, V>`, returns the key and value.\n Aborts with `ETableIsEmpty` if the table is empty",
       "attributes": [],
       "visibility": "Public",
@@ -936,8 +1088,8 @@
       ]
     },
     "contains": {
-      "source_index": 12,
-      "index": 12,
+      "source_index": 14,
+      "index": 14,
       "doc": " Returns true iff there is a value associated with the key `k: K` in table\n `table: &LinkedTable<K, V>`",
       "attributes": [],
       "visibility": "Public",
@@ -1002,8 +1154,8 @@
       ]
     },
     "length": {
-      "source_index": 13,
-      "index": 13,
+      "source_index": 15,
+      "index": 15,
       "doc": " Returns the size of the table, the number of key-value pairs",
       "attributes": [],
       "visibility": "Public",
@@ -1062,8 +1214,8 @@
       ]
     },
     "is_empty": {
-      "source_index": 14,
-      "index": 14,
+      "source_index": 16,
+      "index": 16,
       "doc": " Returns true iff the table is empty (if `length` returns `0`)",
       "attributes": [],
       "visibility": "Public",
@@ -1122,8 +1274,8 @@
       ]
     },
     "destroy_empty": {
-      "source_index": 15,
-      "index": 15,
+      "source_index": 17,
+      "index": 17,
       "doc": " Destroys an empty table\n Aborts with `ETableNotEmpty` if the table still contains values",
       "attributes": [],
       "visibility": "Public",
@@ -1175,8 +1327,8 @@
       "return_": []
     },
     "drop": {
-      "source_index": 16,
-      "index": 16,
+      "source_index": 18,
+      "index": 18,
       "doc": " Drop a possibly non-empty table.\n Usable only if the value type `V` has the `drop` ability",
       "attributes": [],
       "visibility": "Public",

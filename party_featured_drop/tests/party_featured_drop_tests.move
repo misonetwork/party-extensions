@@ -24,6 +24,7 @@ fun new_drop(edition: u32, ctx: &mut TxContext): drop::Drop<SUI> {
         object::id_from_address(@0xCAFE), // release id (fabricated for the test)
         edition,
         drop::new_fixed_price(1000),
+        option::none(), // uncapped
         0, // start
         option::none(), // evergreen
         ctx,

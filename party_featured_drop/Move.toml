@@ -1,15 +1,15 @@
 [package]
-name = "party_featured_pressing"
+name = "party_featured_drop"
 edition = "2024"
 license = "Apache 2.0"
 authors = ["Miso Labs, Inc. (build@miso.network)"]
 
 # Local deps, not git: this is the one party extension that reaches into the
-# protocol. `miso_pressing`'s own dependencies are cross-repo local paths
+# protocol. `miso_drop`'s own dependencies are cross-repo local paths
 # (`miso`, `miso_record`), which a git dep can't resolve — it only works with
 # the sibling repos checked out side by side under `misonetwork/`. `miso_party`
-# has no dependencies of its own, so it shares no package with the pressing
+# has no dependencies of its own, so it shares no package with the drop
 # subtree and there's no duplicate-package conflict.
 [dependencies]
 miso_party = { local = "../../miso-party" }
-miso_pressing = { local = "../../miso-record/move/pressing" }
+miso_drop = { local = "../../miso-drop/move" }

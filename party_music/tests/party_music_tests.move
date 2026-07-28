@@ -34,3 +34,11 @@ fun rejects_empty_bandcamp_subdomain() {
     let _ = music::bandcamp(b"".to_string());
     abort
 }
+
+#[test, expected_failure(abort_code = 1, location = party_music::party_music)] // EIdTooLong
+fun rejects_overlong_id() {
+    // 257 bytes — one over MAX_ID_LENGTH (256).
+    let long = vector::tabulate!(257, |_| 97u8).to_string();
+    let _ = music::spotify(long);
+    abort
+}

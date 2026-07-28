@@ -29,7 +29,12 @@ fun create_genre(scenario: &Scenario, name: vector<u8>): ID {
 }
 
 fun new_party(ctx: &mut TxContext): (party::Party, party::PartyAdminCap) {
-    party::new(party::new_individual_kind(), b"Test Artist".to_string(), ctx)
+    {
+        let clock = sui::clock::create_for_testing(ctx);
+        let (p, cap) = party::new(party::new_individual_kind(), b"Test Artist".to_string(), &clock, ctx);
+        clock.destroy_for_testing();
+        (p, cap)
+    }
 }
 
 /// A fresh, unique id that is NOT a real genre (for negative cases).

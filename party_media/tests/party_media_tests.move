@@ -5,12 +5,17 @@
 module party_media::party_media_tests;
 
 use miso_party::party;
-use ori::walrus_data;
 use party_media::party_media as media;
 use std::unit_test::{assert_eq, destroy};
 
+// Mirrors `party::EUnauthorized` (party.move) for the wrong-cap abort test.
+const EUnauthorized: u64 = 0;
+
 fun new_party(ctx: &mut TxContext): (party::Party, party::PartyAdminCap) {
-    party::new(party::new_individual_kind(), b"Test Artist".to_string(), ctx)
+    let clock = sui::clock::create_for_testing(ctx);
+    let (p, cap) = party::new(party::new_individual_kind(), b"Test Artist".to_string(), &clock, ctx);
+    clock.destroy_for_testing();
+    (p, cap)
 }
 
 #[test]
@@ -19,35 +24,50 @@ fun set_read_and_clear() {
     let (mut p, cap) = new_party(ctx);
 
     assert!(!media::has_media(&p));
-    assert!(media::avatar(&p).is_none());
+    assert!(media::quilt(&p).is_none());
 
-    media::set_avatar(&mut p, &cap, walrus_data::new_blob(0x1234u256));
-    media::set_header(&mut p, &cap, walrus_data::new_blob(0x5678u256));
-
+    media::set_media(&mut p, &cap, 0x1234u256);
     assert!(media::has_media(&p));
-    assert_eq!(media::avatar(&p).destroy_some().blob_id(), 0x1234u256);
-    assert_eq!(media::header(&p).destroy_some().blob_id(), 0x5678u256);
-
-    // Clearing avatar leaves header intact.
-    media::clear_avatar(&mut p, &cap);
-    assert!(media::avatar(&p).is_none());
-    assert!(media::header(&p).is_some());
+    assert_eq!(media::quilt(&p).destroy_some(), 0x1234u256);
 
     media::clear_media(&mut p, &cap);
     assert!(!media::has_media(&p));
-    media::clear_media(&mut p, &cap); // no-op
+    assert!(media::quilt(&p).is_none());
+
+    media::clear_media(&mut p, &cap); // no-op when unset
 
     destroy(p);
     destroy(cap);
 }
 
 #[test]
-fun set_avatar_replaces() {
+fun set_media_replaces_quilt() {
     let ctx = &mut tx_context::dummy();
     let (mut p, cap) = new_party(ctx);
-    media::set_avatar(&mut p, &cap, walrus_data::new_blob(0x1u256));
-    media::set_avatar(&mut p, &cap, walrus_data::new_blob(0x2u256));
-    assert_eq!(media::avatar(&p).destroy_some().blob_id(), 0x2u256);
+
+    media::set_media(&mut p, &cap, 0x1u256);
+    media::set_media(&mut p, &cap, 0x2u256);
+
+    assert_eq!(media::quilt(&p).destroy_some(), 0x2u256);
+
     destroy(p);
     destroy(cap);
+}
+
+#[test, expected_failure(abort_code = EUnauthorized, location = miso_party::party)]
+fun set_media_with_wrong_cap_aborts() {
+    let ctx = &mut tx_context::dummy();
+    let (mut p, cap) = new_party(ctx);
+    let (other, other_cap) = new_party(ctx);
+
+    // A cap for a different party must not authorize writes to `p`. The call
+    // aborts; the cleanup below is unreachable but consumes the owned objects
+    // the borrow-checker still sees as live (the aborting call takes them by
+    // reference, so it cannot prove they are gone).
+    media::set_media(&mut p, &other_cap, 0x1u256);
+
+    destroy(p);
+    destroy(cap);
+    destroy(other);
+    destroy(other_cap);
 }

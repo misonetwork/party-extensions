@@ -33,3 +33,19 @@ fun rejects_empty_patreon() {
     let _ = pro::patreon(b"".to_string());
     abort
 }
+
+#[test, expected_failure(abort_code = 1, location = party_pro_link::party_pro_link)] // EUrlTooLong
+fun rejects_overlong_url() {
+    // 2001 bytes — one over MAX_URL_LENGTH (2000).
+    let long = vector::tabulate!(2001, |_| 97u8).to_string();
+    let _ = pro::website(long);
+    abort
+}
+
+#[test, expected_failure(abort_code = 2, location = party_pro_link::party_pro_link)] // EHandleTooLong
+fun rejects_overlong_handle() {
+    // 257 bytes — one over MAX_HANDLE_LENGTH (256).
+    let long = vector::tabulate!(257, |_| 97u8).to_string();
+    let _ = pro::patreon(long);
+    abort
+}

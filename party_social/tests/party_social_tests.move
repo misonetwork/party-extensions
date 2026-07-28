@@ -36,3 +36,11 @@ fun rejects_empty_instagram_handle() {
     let _ = social::instagram(b"".to_string());
     abort
 }
+
+#[test, expected_failure(abort_code = 1, location = party_social::party_social)] // EHandleTooLong
+fun rejects_overlong_handle() {
+    // 257 bytes — one over MAX_HANDLE_LENGTH (256).
+    let long = vector::tabulate!(257, |_| 97u8).to_string();
+    let _ = social::x(long);
+    abort
+}

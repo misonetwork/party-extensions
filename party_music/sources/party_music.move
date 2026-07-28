@@ -27,6 +27,14 @@ public use fun audiomack_username as AudiomackData.username;
 
 /// The identifier was empty.
 const EEmptyId: u64 = 0;
+/// The id exceeded the maximum length.
+const EIdTooLong: u64 = 1;
+
+// === Constants ===
+
+/// Maximum id/username length in bytes. A generous storage backstop, not format
+/// validation — real platform ids are far shorter.
+const MAX_ID_LENGTH: u64 = 256;
 
 // === Types ===
 
@@ -52,48 +60,56 @@ public struct AudiomackData has copy, drop, store { username: String }
 /// Builds a Spotify artist link. Aborts if empty.
 public fun spotify(artist_id: String): PlatformLink<SpotifyData> {
     assert!(!artist_id.is_empty(), EEmptyId);
+    assert!(artist_id.length() <= MAX_ID_LENGTH, EIdTooLong);
     platform_link::new(SpotifyData { artist_id })
 }
 
 /// Builds a Bandcamp link from an artist subdomain. Aborts if empty.
 public fun bandcamp(subdomain: String): PlatformLink<BandcampData> {
     assert!(!subdomain.is_empty(), EEmptyId);
+    assert!(subdomain.length() <= MAX_ID_LENGTH, EIdTooLong);
     platform_link::new(BandcampData { subdomain })
 }
 
 /// Builds a SoundCloud link from a username. Aborts if empty.
 public fun soundcloud(username: String): PlatformLink<SoundCloudData> {
     assert!(!username.is_empty(), EEmptyId);
+    assert!(username.length() <= MAX_ID_LENGTH, EIdTooLong);
     platform_link::new(SoundCloudData { username })
 }
 
 /// Builds an Apple Music artist link. Aborts if empty.
 public fun apple_music(artist_id: String): PlatformLink<AppleMusicData> {
     assert!(!artist_id.is_empty(), EEmptyId);
+    assert!(artist_id.length() <= MAX_ID_LENGTH, EIdTooLong);
     platform_link::new(AppleMusicData { artist_id })
 }
 
 /// Builds a Deezer artist link. Aborts if empty.
 public fun deezer(artist_id: String): PlatformLink<DeezerData> {
     assert!(!artist_id.is_empty(), EEmptyId);
+    assert!(artist_id.length() <= MAX_ID_LENGTH, EIdTooLong);
     platform_link::new(DeezerData { artist_id })
 }
 
 /// Builds a Tidal artist link. Aborts if empty.
 public fun tidal(artist_id: String): PlatformLink<TidalData> {
     assert!(!artist_id.is_empty(), EEmptyId);
+    assert!(artist_id.length() <= MAX_ID_LENGTH, EIdTooLong);
     platform_link::new(TidalData { artist_id })
 }
 
 /// Builds an Amazon Music artist link. Aborts if empty.
 public fun amazon_music(artist_id: String): PlatformLink<AmazonMusicData> {
     assert!(!artist_id.is_empty(), EEmptyId);
+    assert!(artist_id.length() <= MAX_ID_LENGTH, EIdTooLong);
     platform_link::new(AmazonMusicData { artist_id })
 }
 
 /// Builds an Audiomack link from a username. Aborts if empty.
 public fun audiomack(username: String): PlatformLink<AudiomackData> {
     assert!(!username.is_empty(), EEmptyId);
+    assert!(username.length() <= MAX_ID_LENGTH, EIdTooLong);
     platform_link::new(AudiomackData { username })
 }
 

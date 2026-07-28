@@ -45,9 +45,12 @@ public fun set_link<Data: copy + drop + store>(
 
 /// Clears a platform's link from the party. No-op if unset.
 public fun clear_link<Data: copy + drop + store>(self: &mut Party, cap: &PartyAdminCap) {
-    if (platform_link::exists_<Data>(self.uid())) {
-        let party_id = self.id();
-        platform_link::clear<Data>(self.uid_mut(cap));
+    let party_id = self.id();
+    // Cap-gate first: a wrong cap must abort even when no link is present, so
+    // authorization never depends on state the caller can't be sure of.
+    let uid = self.uid_mut(cap);
+    if (platform_link::exists_<Data>(uid)) {
+        platform_link::clear<Data>(uid);
         emit(LinkClearedEvent<Data> { party_id });
     }
 }

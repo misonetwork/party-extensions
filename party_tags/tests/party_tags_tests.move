@@ -9,7 +9,12 @@ use party_tags::party_tags as tags;
 use std::unit_test::{assert_eq, destroy};
 
 fun new_party(ctx: &mut TxContext): (party::Party, party::PartyAdminCap) {
-    party::new(party::new_individual_kind(), b"Test Artist".to_string(), ctx)
+    {
+        let clock = sui::clock::create_for_testing(ctx);
+        let (p, cap) = party::new(party::new_individual_kind(), b"Test Artist".to_string(), &clock, ctx);
+        clock.destroy_for_testing();
+        (p, cap)
+    }
 }
 
 #[test]

@@ -1,0 +1,9 @@
+[package]
+name = "party_wallet"
+edition = "2024"
+license = "Apache 2.0"
+authors = ["Miso Labs, Inc. (build@miso.network)"]
+
+[dependencies]
+miso_party = { local = "../../miso-party" }
+hikida = { git = "https://github.com/unconfirmedlabs/hikida.git", rev = "bc8e04947f5728328948df584b74ae8b03d17ef8" }

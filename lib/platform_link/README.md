@@ -1,0 +1,77 @@
+# platform_link
+
+`PlatformLink<Data>` — a typed link to an entity on one external platform (a
+streaming service, a social network, any site), stored as a dynamic field on
+any object's `UID`. Protocol-agnostic by design: it knows nothing about
+platforms or consumers, so anything in the ecosystem can depend on it.
+Consumers never re-implement link storage — they define a `Data` payload type
+and get one independent link field per platform, keyed by type.
+
+URLs are never stored: the client rebuilds the public URL from the `Data` it
+reads back, so a platform reshaping its URLs needs no on-chain change.
+
+## What it stores
+
+- Key: `PlatformLinkKey<Data>` (phantom-typed — each platform gets its own
+  field on the same `UID`, so adding a platform never touches another's).
+- Value: `PlatformLink<Data> { data }` where `Data: copy + drop + store` is
+  the platform's native identifier(s) — a handle, id, or subdomain.
+- Exactly one link per `Data` type per `UID`; `set` replaces in place.
+
+The module also owns the shared storage backstops so every payload package
+uses the same numbers:
+
+| Function | Value | Applies to |
+|---|---|---|
+| `max_identifier_length()` | 256 bytes | handles, usernames, ids, subdomains |
+| `max_url_length()` | 2000 bytes | payloads whose URL is the identity |
+
+## API
+
+All functions take the host object's `UID` directly; authorization is the
+consumer's concern (e.g. `party_platform_link` gates with `PartyAdminCap`).
+
+### Constructor / accessor
+
+| Function | Description |
+|---|---|
+| `new<Data>(data)` | Wrap a platform payload into a link |
+| `data<Data>(&link)` | Read the wrapped payload |
+
+### UID storage
+
+| Function | Description | Aborts |
+|---|---|---|
+| `set<Data>(&mut uid, link)` | Store, replacing any existing link | — |
+| `clear<Data>(&mut uid)` | Remove if present | — (no-op when absent) |
+| `remove<Data>(&mut uid)` | Remove and return the link | `ENoLink` (0) when absent |
+| `exists_<Data>(&uid)` | Whether a link is stored | — |
+| `get<Data>(&uid)` | `Option<PlatformLink<Data>>` | — |
+| `borrow<Data>(&uid)` | `&PlatformLink<Data>` | `ENoLink` (0) when absent |
+
+## Events
+
+None — this primitive is storage only. Consumers emit their own typed events
+(`party_platform_link` emits phantom-typed per platform).
+
+## Errors
+
+| Code | Constant | Condition |
+|---|---|---|
+| 0 | `ENoLink` | `borrow` / `remove` with no link stored |
+
+## Dependencies
+
+None beyond the Sui framework (`sui::dynamic_field`).
+
+## Integrator notes
+
+- Define one `…Data` struct per platform in the appropriate payload package
+  (`party_social`, `party_music`, `party_pro_link`), validate non-empty plus
+  the shared length backstops in its constructor, and wrap with
+  `platform_link::new`.
+- Rebuild public URLs client-side from the payload (e.g.
+  `x.com/{handle}`) — and treat stored strings as untrusted input when
+  rendering.
+- `PlatformLinkKey<Data>` types are namespaced by the defining package, so
+  identically-named payloads in different packages never collide.

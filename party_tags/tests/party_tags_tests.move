@@ -8,6 +8,9 @@ use miso_party::party;
 use party_tags::party_tags as tags;
 use std::unit_test::{assert_eq, destroy};
 
+// Mirrors `party::EUnauthorized` (party.move) for the wrong-cap abort test.
+const EUnauthorized: u64 = 0;
+
 fun new_party(ctx: &mut TxContext): (party::Party, party::PartyAdminCap) {
     {
         let clock = sui::clock::create_for_testing(ctx);
@@ -35,6 +38,11 @@ fun add_remove_and_query() {
     assert!(!tags::has_tag(&p, b"ambient".to_string()));
     assert_eq!(tags::tags(&p).length(), 1);
 
+    // Removing the last tag reclaims the field — no empty set lingers.
+    tags::remove_tag(&mut p, &cap, b"deconstructed club".to_string());
+    assert!(!tags::has_tags(&p));
+
+    tags::add_tag(&mut p, &cap, b"leftfield pop".to_string());
     tags::clear_tags(&mut p, &cap);
     assert!(!tags::has_tags(&p));
 
@@ -50,7 +58,7 @@ fun rejects_empty() {
     abort
 }
 
-#[test, expected_failure(abort_code = 2, location = party_tags::party_tags)] // EDuplicateTag
+#[test, expected_failure(abort_code = 0, location = typed_set::typed_set)] // EDuplicateItem
 fun rejects_duplicate() {
     let ctx = &mut tx_context::dummy();
     let (mut p, cap) = new_party(ctx);
@@ -59,7 +67,16 @@ fun rejects_duplicate() {
     abort
 }
 
-#[test, expected_failure(abort_code = 4, location = party_tags::party_tags)] // EMaxTagsExceeded
+#[test, expected_failure(abort_code = 1, location = typed_set::typed_set)] // EItemNotPresent
+fun remove_absent_aborts() {
+    let ctx = &mut tx_context::dummy();
+    let (mut p, cap) = new_party(ctx);
+    tags::add_tag(&mut p, &cap, b"ambient".to_string());
+    tags::remove_tag(&mut p, &cap, b"techno".to_string()); // not carried
+    abort
+}
+
+#[test, expected_failure(abort_code = 2, location = typed_set::typed_set)] // EMaxItemsExceeded
 fun rejects_over_max() {
     let ctx = &mut tx_context::dummy();
     let (mut p, cap) = new_party(ctx);
@@ -68,5 +85,16 @@ fun rejects_over_max() {
         let tag = std::string::utf8(vector[b"t"[0], ((65 + i) as u8)]);
         tags::add_tag(&mut p, &cap, tag);
     });
+    abort
+}
+
+#[test, expected_failure(abort_code = EUnauthorized, location = miso_party::party)]
+fun add_tag_with_wrong_cap_aborts() {
+    let ctx = &mut tx_context::dummy();
+    let (mut p, _cap) = new_party(ctx);
+    let (_other, other_cap) = new_party(ctx);
+
+    // A cap for a different party must not authorize writes to `p`.
+    tags::add_tag(&mut p, &other_cap, b"ambient".to_string());
     abort
 }

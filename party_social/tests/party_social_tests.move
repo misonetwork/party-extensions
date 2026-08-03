@@ -39,7 +39,7 @@ fun rejects_empty_instagram_handle() {
 
 #[test, expected_failure(abort_code = 1, location = party_social::party_social)] // EHandleTooLong
 fun rejects_overlong_handle() {
-    // 257 bytes — one over MAX_HANDLE_LENGTH (256).
+    // 257 bytes — one over the shared backstop (platform_link::max_identifier_length(), 256).
     let long = vector::tabulate!(257, |_| 97u8).to_string();
     let _ = social::x(long);
     abort

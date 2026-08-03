@@ -30,6 +30,22 @@ use sui::dynamic_field as df;
 /// No `PlatformLink<Data>` is stored under this `UID`.
 const ENoLink: u64 = 0;
 
+// === Shared limits ===
+//
+// Owned here so every payload package backstops storage by the same numbers
+// and they can never drift. Both are generous storage-hygiene backstops, not
+// format validation — real identifiers and URLs are far shorter, and format
+// rules change over time and belong in the app layer. (Functions, not
+// constants: this toolchain has no `public const`.)
+
+/// Maximum length of a platform identifier — a handle, username, id, or
+/// subdomain — in bytes.
+public fun max_identifier_length(): u64 { 256 }
+
+/// Maximum length of a stored URL in bytes, for payloads whose URL is the
+/// identity (no reconstructable handle).
+public fun max_url_length(): u64 { 2000 }
+
 // === Types ===
 
 /// A link to an entity on one platform. `Data` carries that platform's native
@@ -87,12 +103,6 @@ public fun get<Data: copy + drop + store>(uid: &UID): Option<PlatformLink<Data>>
 public fun borrow<Data: copy + drop + store>(uid: &UID): &PlatformLink<Data> {
     assert!(df::exists(uid, PlatformLinkKey<Data>()), ENoLink);
     df::borrow(uid, PlatformLinkKey<Data>())
-}
-
-/// Mutably borrows the stored link. Aborts if none is stored.
-public fun borrow_mut<Data: copy + drop + store>(uid: &mut UID): &mut PlatformLink<Data> {
-    assert!(df::exists(uid, PlatformLinkKey<Data>()), ENoLink);
-    df::borrow_mut(uid, PlatformLinkKey<Data>())
 }
 
 /// Removes and returns the stored link. Aborts if none is stored.

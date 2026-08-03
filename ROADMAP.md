@@ -11,7 +11,7 @@ ship independently of the others.
    artist authors. Anything computable from Miso protocol objects (catalogue,
    credits, editions, counts) is **derived at read time**, never copied onto the
    party — a copy is a guaranteed-stale second source of truth.
-2. **Reference, don't embed.** Media is a Walrus reference (`ori::WalrusData`) or
+2. **Reference, don't embed.** Media is a Walrus reference (a quilt blob id) or
    an external URL — never bytes on-chain. Links store the platform's native
    handle/id (URL rebuilt client-side), or a full URL where there is no handle.
 3. **Many small extensions, not one mega-struct.** Move cannot add fields to a
@@ -30,7 +30,7 @@ ship independently of the others.
 |---|---|---|
 | ✅ Declare (extension) | Artist-authored, non-derivable | bio, roles, tags, links, CTAs, featured pointers, verified badge |
 | 🔗 Derive from protocol | Lives on Release/Composition/Recording + their extensions | catalogue, release metadata, credits/ISRC/UPC/splits, editions, collector & release counts, formats |
-| 📦 Reference (Walrus/`ori`) | Media is a ref, not bytes | avatar, header, gallery, embedded media |
+| 📦 Reference (Walrus) | Media is a ref, not bytes | avatar, header, gallery, embedded media |
 | 🚫 Off-chain / indexer | UI state & computed values | theme/accent/layout/section order, toggles, completeness score, last-updated, moderation |
 | ⚠️ Never raw on-chain | Permanent + public = privacy risk | booking/press/sync emails, phone, fees, payout/wallet addresses |
 
@@ -46,27 +46,27 @@ Two structural facts that remove large parts of the wishlist:
 | Package | Owns |
 |---|---|
 | `lib/platform_link` | `PlatformLink<Data>` primitive — one typed link per platform, stored on any UID |
+| `lib/typed_set` | Bounded-set primitive — one `VecSet<T>` per key type on any UID; dup/max checks, field reclamation on empty |
 | `party_platform_link` | Party wiring: `set_link<Data>` / `clear_link` / views + phantom events |
-| `party_social` | Handle payloads: X, Instagram, Threads, TikTok, YouTube |
-| `party_music` | Artist-profile payloads: Spotify, Bandcamp, SoundCloud, Apple Music |
-| `party_profile` (v1) | Description + optional location |
+| `party_social` | Handle payloads: X, Instagram, Threads, TikTok, YouTube, Discord, Telegram, Reddit, Twitch, Facebook |
+| `party_music` | Artist-profile payloads: Spotify, Bandcamp, SoundCloud, Apple Music, Deezer, Tidal, Amazon, Audiomack |
+| `party_profile` (v1) | bio_short, bio_long, country (`country_code`), languages (`language_code`) |
 | `party_genre` | Genre-id tag set, validated against the `genre` vocabulary (`&Genre`) |
 | `miso-protocol-extensions/lib/genre` | Extracted vocabulary primitive (Sui-only), shared by releases + parties |
 
 ---
 
-## Phase 1 — A legible artist page + link hub
+## Phase 1 — A legible artist page + link hub (shipped)
 
 Turns a link list into a real profile: identity card, imagery, the full platform
 matrix, and prioritized calls-to-action.
 
 | Package | Owns | Notes |
 |---|---|---|
-| `party_profile` (v2) | bio_short, bio_long, country (`country_code`), pronouns, languages (`language_code`), active_since | Extend the struct (unpublished, no migration) |
+| `party_profile` (v2) | pronouns, active_since | Extend the struct — published now, so new fields need a migration path, not a silent layout change |
 | `party_roles` | Artist type set — Artist/Producer/DJ/Composer/Songwriter/Band/Label/Collective + `Custom` | Closed enum, mirrors `composition_party_role` |
-| `party_tags` | Free-form moods/scenes (`VecSet<String>`) | Uncurated sibling to `party_genre` |
-| `party_media` | avatar + header (`ori::WalrusData`) | Isolates the `ori` dependency; Walrus-hosted only |
-| `party_social` / `party_music` (extend) | + Deezer, Tidal, Amazon, Audiomack, YouTube; Discord, Telegram, Reddit, Twitch, Facebook | New `Data` types only — zero new mechanism |
+| `party_tags` | Free-form moods/scenes (`VecSet<String>` via `typed_set`) | Uncurated sibling to `party_genre` |
+| `party_media` | avatar + header as one Walrus quilt (`u256` blob id) | Patch roles ("avatar"/"header") are a client convention, derived off-chain |
 | `party_pro_link` | Website, booking/management/publisher/label pages, EPK; Patreon, Substack, Ko-fi | Mix of handle-based and full-URL payloads |
 | `party_cta` | Ordered off-Miso call-to-action links — slim `{ label, url }`, replace-whole-list | External URLs only; on-Miso actions go to `party_featured` (Phase 2) |
 

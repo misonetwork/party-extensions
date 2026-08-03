@@ -24,6 +24,12 @@ use sui::event::emit;
 /// Dynamic-field key for a party's media.
 public struct MediaKey() has copy, drop, store;
 
+// === Errors ===
+
+/// The quilt id was zero. Zero is never a real Walrus blob id — almost
+/// certainly a caller bug, and indistinguishable from "unset" downstream.
+const EZeroQuilt: u64 = 0;
+
 // === Types ===
 
 /// A party's imagery. Held as a dynamic-field value.
@@ -36,9 +42,12 @@ public struct Media has store, drop {
 
 // === Events ===
 
-/// Emitted when a party's media quilt is set or replaced.
+/// Emitted when a party's media quilt is set or replaced. Carries the new
+/// quilt id — small, stable pointers ride in the event so an indexer can skip
+/// re-reading the field (dynamic-field mutations are not otherwise observable).
 public struct MediaSetEvent has copy, drop {
     party_id: ID,
+    quilt: u256,
 }
 
 /// Emitted when a party's media is removed.
@@ -48,8 +57,9 @@ public struct MediaClearedEvent has copy, drop {
 
 // === Write API ===
 
-/// Sets (or replaces) the party's media quilt.
+/// Sets (or replaces) the party's media quilt. Aborts on a zero id.
 public fun set_media(self: &mut Party, cap: &PartyAdminCap, quilt: u256) {
+    assert!(quilt != 0, EZeroQuilt);
     let party_id = self.id();
     let uid = self.uid_mut(cap);
     if (df::exists(uid, MediaKey())) {
@@ -57,7 +67,7 @@ public fun set_media(self: &mut Party, cap: &PartyAdminCap, quilt: u256) {
     } else {
         df::add(uid, MediaKey(), Media { quilt });
     };
-    emit(MediaSetEvent { party_id });
+    emit(MediaSetEvent { party_id, quilt });
 }
 
 /// Removes the party's media. No-op if none is set.

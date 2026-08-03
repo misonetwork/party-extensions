@@ -34,12 +34,6 @@ const EEmptyHandle: u64 = 0;
 /// The handle exceeded the maximum length.
 const EHandleTooLong: u64 = 1;
 
-// === Constants ===
-
-/// Maximum handle length in bytes. A generous storage backstop, not format
-/// validation — real handles are far shorter.
-const MAX_HANDLE_LENGTH: u64 = 256;
-
 // === Types ===
 
 /// An X (formerly Twitter) handle, without the leading `@`.
@@ -68,70 +62,70 @@ public struct FacebookData has copy, drop, store { handle: String }
 /// Builds an X link from a handle. Aborts if empty.
 public fun x(handle: String): PlatformLink<XData> {
     assert!(!handle.is_empty(), EEmptyHandle);
-    assert!(handle.length() <= MAX_HANDLE_LENGTH, EHandleTooLong);
+    assert!(handle.length() <= platform_link::max_identifier_length(), EHandleTooLong);
     platform_link::new(XData { handle })
 }
 
 /// Builds an Instagram link from a handle. Aborts if empty.
 public fun instagram(handle: String): PlatformLink<InstagramData> {
     assert!(!handle.is_empty(), EEmptyHandle);
-    assert!(handle.length() <= MAX_HANDLE_LENGTH, EHandleTooLong);
+    assert!(handle.length() <= platform_link::max_identifier_length(), EHandleTooLong);
     platform_link::new(InstagramData { handle })
 }
 
 /// Builds a Threads link from a handle. Aborts if empty.
 public fun threads(handle: String): PlatformLink<ThreadsData> {
     assert!(!handle.is_empty(), EEmptyHandle);
-    assert!(handle.length() <= MAX_HANDLE_LENGTH, EHandleTooLong);
+    assert!(handle.length() <= platform_link::max_identifier_length(), EHandleTooLong);
     platform_link::new(ThreadsData { handle })
 }
 
 /// Builds a TikTok link from a handle. Aborts if empty.
 public fun tiktok(handle: String): PlatformLink<TikTokData> {
     assert!(!handle.is_empty(), EEmptyHandle);
-    assert!(handle.length() <= MAX_HANDLE_LENGTH, EHandleTooLong);
+    assert!(handle.length() <= platform_link::max_identifier_length(), EHandleTooLong);
     platform_link::new(TikTokData { handle })
 }
 
 /// Builds a YouTube link from a handle or channel identifier. Aborts if empty.
 public fun youtube(handle: String): PlatformLink<YouTubeData> {
     assert!(!handle.is_empty(), EEmptyHandle);
-    assert!(handle.length() <= MAX_HANDLE_LENGTH, EHandleTooLong);
+    assert!(handle.length() <= platform_link::max_identifier_length(), EHandleTooLong);
     platform_link::new(YouTubeData { handle })
 }
 
 /// Builds a Discord link from a server-invite code. Aborts if empty.
 public fun discord(handle: String): PlatformLink<DiscordData> {
     assert!(!handle.is_empty(), EEmptyHandle);
-    assert!(handle.length() <= MAX_HANDLE_LENGTH, EHandleTooLong);
+    assert!(handle.length() <= platform_link::max_identifier_length(), EHandleTooLong);
     platform_link::new(DiscordData { handle })
 }
 
 /// Builds a Telegram link from a username or channel. Aborts if empty.
 public fun telegram(handle: String): PlatformLink<TelegramData> {
     assert!(!handle.is_empty(), EEmptyHandle);
-    assert!(handle.length() <= MAX_HANDLE_LENGTH, EHandleTooLong);
+    assert!(handle.length() <= platform_link::max_identifier_length(), EHandleTooLong);
     platform_link::new(TelegramData { handle })
 }
 
 /// Builds a Reddit link from a username. Aborts if empty.
 public fun reddit(handle: String): PlatformLink<RedditData> {
     assert!(!handle.is_empty(), EEmptyHandle);
-    assert!(handle.length() <= MAX_HANDLE_LENGTH, EHandleTooLong);
+    assert!(handle.length() <= platform_link::max_identifier_length(), EHandleTooLong);
     platform_link::new(RedditData { handle })
 }
 
 /// Builds a Twitch link from a channel name. Aborts if empty.
 public fun twitch(handle: String): PlatformLink<TwitchData> {
     assert!(!handle.is_empty(), EEmptyHandle);
-    assert!(handle.length() <= MAX_HANDLE_LENGTH, EHandleTooLong);
+    assert!(handle.length() <= platform_link::max_identifier_length(), EHandleTooLong);
     platform_link::new(TwitchData { handle })
 }
 
 /// Builds a Facebook link from a page username or id. Aborts if empty.
 public fun facebook(handle: String): PlatformLink<FacebookData> {
     assert!(!handle.is_empty(), EEmptyHandle);
-    assert!(handle.length() <= MAX_HANDLE_LENGTH, EHandleTooLong);
+    assert!(handle.length() <= platform_link::max_identifier_length(), EHandleTooLong);
     platform_link::new(FacebookData { handle })
 }
 

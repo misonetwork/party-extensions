@@ -6,5 +6,5 @@ authors = ["Miso Labs, Inc. (build@miso.network)"]
 
 [dependencies]
 miso_party = { local = "../../miso-party" }
-country_code = { git = "https://github.com/unconfirmedlabs/country_code.git", rev = "main" }
-language_code = { git = "https://github.com/unconfirmedlabs/language_code.git", rev = "main" }
+country_code = { git = "https://github.com/unconfirmedlabs/country_code.git", rev = "23fad25f08d871d05b55aee390516ba7e5931b4a" }
+language_code = { git = "https://github.com/unconfirmedlabs/language_code.git", rev = "17a5e84ac77cf3be6f8a72eddb3c0570c455c37f" }

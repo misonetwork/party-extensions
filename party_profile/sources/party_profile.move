@@ -20,6 +20,7 @@ use miso_party::party::{Party, PartyAdminCap};
 use std::string::String;
 use sui::dynamic_field as df;
 use sui::event::emit;
+use sui::vec_set;
 
 // === Errors ===
 
@@ -35,6 +36,8 @@ const EBioLongTooLong: u64 = 3;
 const ETooManyLanguages: u64 = 4;
 /// No profile is set on this party.
 const ENoProfile: u64 = 5;
+/// A language tag appears more than once.
+const EDuplicateLanguage: u64 = 6;
 
 // === Constants ===
 
@@ -75,7 +78,9 @@ public struct ProfileClearedEvent has copy, drop {
 
 // === Write API ===
 
-/// Sets (creates or replaces) the party's whole profile.
+/// Sets (creates or replaces) the party's whole profile. The single write
+/// entry point: a profile is a cohesive card, edited as a whole and saved in
+/// one call.
 public fun set_profile(
     self: &mut Party,
     cap: &PartyAdminCap,
@@ -96,37 +101,6 @@ public fun set_profile(
     } else {
         df::add(uid, ProfileKey(), profile);
     };
-    emit(ProfileSetEvent { party_id });
-}
-
-/// Updates the short bio of an existing profile. Aborts if no profile is set.
-public fun set_bio_short(self: &mut Party, cap: &PartyAdminCap, bio_short: String) {
-    validate_bio_short(&bio_short);
-    let party_id = self.id();
-    borrow_profile_mut(self, cap).bio_short = bio_short;
-    emit(ProfileSetEvent { party_id });
-}
-
-/// Sets or clears the long bio of an existing profile. Aborts if no profile is set.
-public fun set_bio_long(self: &mut Party, cap: &PartyAdminCap, bio_long: Option<String>) {
-    validate_optional(&bio_long, MAX_BIO_LONG_LENGTH, EEmptyBioLong, EBioLongTooLong);
-    let party_id = self.id();
-    borrow_profile_mut(self, cap).bio_long = bio_long;
-    emit(ProfileSetEvent { party_id });
-}
-
-/// Sets or clears the country of an existing profile. Aborts if no profile is set.
-public fun set_country(self: &mut Party, cap: &PartyAdminCap, country: Option<CountryCode>) {
-    let party_id = self.id();
-    borrow_profile_mut(self, cap).country = country;
-    emit(ProfileSetEvent { party_id });
-}
-
-/// Replaces the language tags of an existing profile. Aborts if no profile is set.
-public fun set_languages(self: &mut Party, cap: &PartyAdminCap, languages: vector<LanguageCode>) {
-    validate_languages(&languages);
-    let party_id = self.id();
-    borrow_profile_mut(self, cap).languages = languages;
     emit(ProfileSetEvent { party_id });
 }
 
@@ -160,12 +134,6 @@ public fun languages(self: &Profile): vector<LanguageCode> { self.languages }
 
 // === Private ===
 
-fun borrow_profile_mut(self: &mut Party, cap: &PartyAdminCap): &mut Profile {
-    let uid = self.uid_mut(cap);
-    assert!(df::exists(uid, ProfileKey()), ENoProfile);
-    df::borrow_mut(uid, ProfileKey())
-}
-
 fun validate_bio_short(bio_short: &String) {
     assert!(!bio_short.is_empty(), EEmptyBioShort);
     assert!(bio_short.length() <= MAX_BIO_SHORT_LENGTH, EBioShortTooLong);
@@ -179,8 +147,13 @@ fun validate_optional(opt: &Option<String>, max: u64, empty_err: u64, long_err: 
     }
 }
 
-// Each `LanguageCode` is already a valid ISO 639-1 code by construction, so only
-// the count is bounded here.
+// Each `LanguageCode` is already a valid ISO 639-1 code by construction, so
+// only the count and duplicates are checked here.
 fun validate_languages(languages: &vector<LanguageCode>) {
     assert!(languages.length() <= MAX_LANGUAGES, ETooManyLanguages);
+    let mut seen = vec_set::empty<LanguageCode>();
+    languages.do_ref!(|l| {
+        assert!(!seen.contains(l), EDuplicateLanguage);
+        seen.insert(*l);
+    });
 }

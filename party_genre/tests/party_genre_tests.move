@@ -15,6 +15,9 @@ use sui::test_scenario::{Self as ts, Scenario};
 const CURATOR: address = @0xC0;
 const MAX_GENRES: u64 = 20;
 
+// Mirrors `party::EUnauthorized` (party.move) for the wrong-cap abort test.
+const EUnauthorized: u64 = 0;
+
 // === Helpers ===
 
 /// Creates a genre in the registry (cap-gated) and returns its derived id.
@@ -75,6 +78,11 @@ fun add_remove_and_query() {
     assert!(!pg::has_genre(&p, id1));
     assert_eq!(pg::genres(&p).length(), 1);
 
+    // Removing the last genre reclaims the field — no empty set lingers.
+    pg::remove_genre(&mut p, &cap, id2);
+    assert!(!pg::has_genres(&p));
+
+    pg::add_genre(&mut p, &cap, &genre1);
     pg::clear_genres(&mut p, &cap);
     assert!(!pg::has_genres(&p));
 
@@ -85,7 +93,7 @@ fun add_remove_and_query() {
     scenario.end();
 }
 
-#[test, expected_failure(abort_code = 0, location = party_genre::party_genre)] // EDuplicateGenre
+#[test, expected_failure(abort_code = 0, location = typed_set::typed_set)] // EDuplicateItem
 fun rejects_duplicate() {
     let mut scenario = ts::begin(CURATOR);
     g::init_for_testing(scenario.ctx());
@@ -100,7 +108,7 @@ fun rejects_duplicate() {
     abort
 }
 
-#[test, expected_failure(abort_code = 1, location = party_genre::party_genre)] // EGenreNotPresent
+#[test, expected_failure(abort_code = 1, location = typed_set::typed_set)] // EItemNotPresent
 fun remove_absent_aborts() {
     let mut scenario = ts::begin(CURATOR);
     g::init_for_testing(scenario.ctx());
@@ -111,11 +119,11 @@ fun remove_absent_aborts() {
     let genre = scenario.take_immutable_by_id<Genre>(id);
     let (mut p, cap) = new_party(scenario.ctx());
     pg::add_genre(&mut p, &cap, &genre);
-    pg::remove_genre(&mut p, &cap, fresh_id(scenario.ctx())); // a real genre, but not tagged
+    pg::remove_genre(&mut p, &cap, fresh_id(scenario.ctx())); // a real id, but not tagged
     abort
 }
 
-#[test, expected_failure(abort_code = 2, location = party_genre::party_genre)] // EMaxGenresExceeded
+#[test, expected_failure(abort_code = 2, location = typed_set::typed_set)] // EMaxItemsExceeded
 fun rejects_over_max() {
     let mut scenario = ts::begin(CURATOR);
     g::init_for_testing(scenario.ctx());
@@ -142,5 +150,22 @@ fun rejects_over_max() {
         pg::add_genre(&mut p, &cap, &genre); // the (MAX_GENRES + 1)-th aborts
         ts::return_immutable(genre);
     });
+    abort
+}
+
+#[test, expected_failure(abort_code = EUnauthorized, location = miso_party::party)]
+fun add_genre_with_wrong_cap_aborts() {
+    let mut scenario = ts::begin(CURATOR);
+    g::init_for_testing(scenario.ctx());
+    scenario.next_tx(CURATOR);
+    let id = create_genre(&scenario, b"HIP_HOP");
+
+    scenario.next_tx(CURATOR);
+    let genre = scenario.take_immutable_by_id<Genre>(id);
+    let (mut p, _cap) = new_party(scenario.ctx());
+    let (_other, other_cap) = new_party(scenario.ctx());
+
+    // A cap for a different party must not authorize writes to `p`.
+    pg::add_genre(&mut p, &other_cap, &genre);
     abort
 }

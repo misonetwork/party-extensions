@@ -10,6 +10,9 @@ use miso_party::party;
 use party_profile::party_profile as profile;
 use std::unit_test::{assert_eq, destroy};
 
+// Mirrors `party::EUnauthorized` (party.move) for the wrong-cap abort test.
+const EUnauthorized: u64 = 0;
+
 fun new_party(ctx: &mut TxContext): (party::Party, party::PartyAdminCap) {
     {
         let clock = sui::clock::create_for_testing(ctx);
@@ -46,7 +49,7 @@ fun set_and_read_full_profile() {
 }
 
 #[test]
-fun minimal_profile_and_field_setters() {
+fun replace_profile_in_place() {
     let ctx = &mut tx_context::dummy();
     let (mut p, cap) = new_party(ctx);
 
@@ -54,10 +57,15 @@ fun minimal_profile_and_field_setters() {
     profile::set_profile(&mut p, &cap, b"first".to_string(), option::none(), option::none(), vector[]);
     assert_eq!(profile::profile(&p).bio_long(), option::none());
 
-    profile::set_bio_short(&mut p, &cap, b"second".to_string());
-    profile::set_bio_long(&mut p, &cap, option::some(b"long".to_string()));
-    profile::set_country(&mut p, &cap, option::some(cc::new(b"DE".to_string())));
-    profile::set_languages(&mut p, &cap, vector[lc::new(b"de".to_string())]);
+    // The whole card is re-set in one call; the field is replaced, not stacked.
+    profile::set_profile(
+        &mut p,
+        &cap,
+        b"second".to_string(),
+        option::some(b"long".to_string()),
+        option::some(cc::new(b"DE".to_string())),
+        vector[lc::new(b"de".to_string())],
+    );
 
     let card = profile::profile(&p);
     assert_eq!(card.bio_short(), b"second".to_string());
@@ -103,10 +111,22 @@ fun rejects_too_many_languages() {
     abort
 }
 
-#[test, expected_failure(abort_code = 5, location = party_profile::party_profile)] // ENoProfile
-fun set_field_without_profile_aborts() {
+#[test, expected_failure(abort_code = 6, location = party_profile::party_profile)] // EDuplicateLanguage
+fun rejects_duplicate_languages() {
     let ctx = &mut tx_context::dummy();
     let (mut p, cap) = new_party(ctx);
-    profile::set_bio_short(&mut p, &cap, b"x".to_string());
+    let langs = vector[lc::new(b"en".to_string()), lc::new(b"ja".to_string()), lc::new(b"en".to_string())];
+    profile::set_profile(&mut p, &cap, b"bio".to_string(), option::none(), option::none(), langs);
+    abort
+}
+
+#[test, expected_failure(abort_code = EUnauthorized, location = miso_party::party)]
+fun set_profile_with_wrong_cap_aborts() {
+    let ctx = &mut tx_context::dummy();
+    let (mut p, _cap) = new_party(ctx);
+    let (_other, other_cap) = new_party(ctx);
+
+    // A cap for a different party must not authorize writes to `p`.
+    profile::set_profile(&mut p, &other_cap, b"bio".to_string(), option::none(), option::none(), vector[]);
     abort
 }

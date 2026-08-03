@@ -6,3 +6,4 @@ authors = ["Miso Labs, Inc. (build@miso.network)"]
 
 [dependencies]
 miso_party = { local = "../../miso-party" }
+typed_set = { local = "../lib/typed_set" }

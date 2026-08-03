@@ -7,15 +7,17 @@
 /// `ArtistRole` is a closed enum with a `Custom` escape hatch, mirroring
 /// `composition_party_role`: canonical variants give the frontend a fixed,
 /// typo-free set to render icons for, while `Custom(name)` covers anything else.
-/// Roles are stored as a `VecSet<ArtistRole>` on the party, gated by the
-/// `PartyAdminCap`; views are permissionless.
+/// The set mechanics — storage, duplicate and capacity checks, field
+/// reclamation — live in the shared `typed_set` primitive; this package keeps
+/// the role type, name validation, the capacity, and the typed events.
+/// Duplicate / not-present / over-max aborts come from `typed_set` with its own
+/// error codes. Gated by the `PartyAdminCap`; views are permissionless.
 module party_roles::party_roles;
 
 use miso_party::party::{Party, PartyAdminCap};
 use std::string::String;
-use sui::dynamic_field as df;
 use sui::event::emit;
-use sui::vec_set::{Self, VecSet};
+use typed_set::typed_set as set;
 
 public use fun role_name as ArtistRole.name;
 
@@ -25,12 +27,6 @@ public use fun role_name as ArtistRole.name;
 const EEmptyCustomName: u64 = 0;
 /// A custom role name exceeds the maximum length.
 const ECustomNameTooLong: u64 = 1;
-/// The party already holds this role.
-const EDuplicateRole: u64 = 2;
-/// The party does not hold this role.
-const ERoleNotPresent: u64 = 3;
-/// Adding this role would exceed the maximum.
-const EMaxRolesExceeded: u64 = 4;
 
 // === Constants ===
 
@@ -41,7 +37,8 @@ const MAX_ROLES: u64 = 12;
 
 // === Keys ===
 
-/// Dynamic-field key for a party's role set.
+/// Dynamic-field key for a party's role set, stored as a `VecSet<ArtistRole>`
+/// and managed through `typed_set`.
 public struct RolesKey() has copy, drop, store;
 
 // === Types ===
@@ -59,11 +56,6 @@ public enum ArtistRole has copy, drop, store {
     /// A user-defined role not covered by a canonical variant (validated).
     /// Prefer a canonical variant when one fits.
     Custom(String),
-}
-
-/// The set of roles held by a party.
-public struct PartyRoles has store {
-    roles: VecSet<ArtistRole>,
 }
 
 // === Events ===
@@ -120,26 +112,21 @@ public fun role_name(self: &ArtistRole): String {
 
 // === Write API ===
 
-/// Adds a role to the party. Aborts if already held or the max is reached.
+/// Adds a role to the party. Aborts in `typed_set` if already held or the max
+/// is reached.
 public fun add_role(self: &mut Party, cap: &PartyAdminCap, role: ArtistRole) {
     let party_id = self.id();
     let name = role.name();
-    let roles = roles_mut_or_init(self, cap);
-    assert!(!roles.contains(&role), EDuplicateRole);
-    assert!(roles.length() < MAX_ROLES, EMaxRolesExceeded);
-    roles.insert(role);
+    set::add(self.uid_mut(cap), RolesKey(), role, MAX_ROLES);
     emit(RoleAddedEvent { party_id, role: name });
 }
 
-/// Removes a role from the party. Aborts if not held.
+/// Removes a role from the party. Aborts in `typed_set` if not held. The whole
+/// field is dropped when the last role leaves.
 public fun remove_role(self: &mut Party, cap: &PartyAdminCap, role: ArtistRole) {
     let party_id = self.id();
     let name = role.name();
-    let uid = self.uid_mut(cap);
-    assert!(df::exists(uid, RolesKey()), ERoleNotPresent);
-    let roles = borrow_roles_mut(uid);
-    assert!(roles.contains(&role), ERoleNotPresent);
-    roles.remove(&role);
+    set::remove(self.uid_mut(cap), RolesKey(), role);
     emit(RoleRemovedEvent { party_id, role: name });
 }
 
@@ -147,45 +134,25 @@ public fun remove_role(self: &mut Party, cap: &PartyAdminCap, role: ArtistRole) 
 public fun clear_roles(self: &mut Party, cap: &PartyAdminCap) {
     let party_id = self.id();
     let uid = self.uid_mut(cap);
-    if (df::exists(uid, RolesKey())) {
-        let PartyRoles { .. } = df::remove(uid, RolesKey());
+    if (set::exists(uid, RolesKey())) {
+        set::clear<RolesKey, ArtistRole>(uid, RolesKey());
         emit(RolesClearedEvent { party_id });
     }
 }
 
 // === Views ===
 
-/// Whether the party has a role set.
+/// Whether the party holds any roles.
 public fun has_roles(self: &Party): bool {
-    df::exists(self.uid(), RolesKey())
+    set::exists(self.uid(), RolesKey())
 }
 
 /// Whether the party holds the given role.
 public fun has_role(self: &Party, role: ArtistRole): bool {
-    if (!df::exists(self.uid(), RolesKey())) return false;
-    borrow_roles(self.uid()).contains(&role)
+    set::contains(self.uid(), RolesKey(), &role)
 }
 
 /// The party's roles.
 public fun roles(self: &Party): vector<ArtistRole> {
-    if (!df::exists(self.uid(), RolesKey())) return vector[];
-    *borrow_roles(self.uid()).keys()
-}
-
-// === Private ===
-
-fun borrow_roles(uid: &UID): &VecSet<ArtistRole> {
-    &df::borrow<RolesKey, PartyRoles>(uid, RolesKey()).roles
-}
-
-fun borrow_roles_mut(uid: &mut UID): &mut VecSet<ArtistRole> {
-    &mut df::borrow_mut<RolesKey, PartyRoles>(uid, RolesKey()).roles
-}
-
-fun roles_mut_or_init(self: &mut Party, cap: &PartyAdminCap): &mut VecSet<ArtistRole> {
-    let uid = self.uid_mut(cap);
-    if (!df::exists(uid, RolesKey())) {
-        df::add(uid, RolesKey(), PartyRoles { roles: vec_set::empty() });
-    };
-    borrow_roles_mut(uid)
+    set::keys(self.uid(), RolesKey())
 }

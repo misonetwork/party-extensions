@@ -54,6 +54,14 @@ fun set_media_replaces_quilt() {
     destroy(cap);
 }
 
+#[test, expected_failure(abort_code = 0, location = party_media::party_media)] // EZeroQuilt
+fun rejects_zero_quilt() {
+    let ctx = &mut tx_context::dummy();
+    let (mut p, cap) = new_party(ctx);
+    media::set_media(&mut p, &cap, 0u256);
+    abort
+}
+
 #[test, expected_failure(abort_code = EUnauthorized, location = miso_party::party)]
 fun set_media_with_wrong_cap_aborts() {
     let ctx = &mut tx_context::dummy();

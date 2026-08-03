@@ -5,16 +5,19 @@
 /// "deconstructed club", "leftfield pop").
 ///
 /// The uncurated sibling to `party_genre`: genres reference a canonical, shared
-/// vocabulary; tags are whatever the artist types. Stored as a `VecSet<String>`
-/// on the party, gated by the `PartyAdminCap`. Tags are stored as given (exact
-/// dedupe); normalization for search/display is a client concern.
+/// vocabulary; tags are whatever the artist types. The set mechanics — storage,
+/// duplicate and capacity checks, field reclamation — live in the shared
+/// `typed_set` primitive; this package keeps only what is tag-specific: length
+/// validation, the capacity, and the typed events. Duplicate / not-present /
+/// over-max aborts come from `typed_set` with its own error codes. Tags are
+/// stored as given (exact dedupe); normalization for search/display is a client
+/// concern. Gated by the `PartyAdminCap`; views are permissionless.
 module party_tags::party_tags;
 
 use miso_party::party::{Party, PartyAdminCap};
 use std::string::String;
-use sui::dynamic_field as df;
 use sui::event::emit;
-use sui::vec_set::{Self, VecSet};
+use typed_set::typed_set as set;
 
 // === Errors ===
 
@@ -22,12 +25,6 @@ use sui::vec_set::{Self, VecSet};
 const EEmptyTag: u64 = 0;
 /// A tag exceeds the maximum length.
 const ETagTooLong: u64 = 1;
-/// The party already carries this tag.
-const EDuplicateTag: u64 = 2;
-/// The party does not carry this tag.
-const ETagNotPresent: u64 = 3;
-/// Adding this tag would exceed the maximum.
-const EMaxTagsExceeded: u64 = 4;
 
 // === Constants ===
 
@@ -38,15 +35,9 @@ const MAX_TAGS: u64 = 30;
 
 // === Keys ===
 
-/// Dynamic-field key for a party's tag set.
+/// Dynamic-field key for a party's tag set, stored as a `VecSet<String>` and
+/// managed through `typed_set`.
 public struct TagsKey() has copy, drop, store;
-
-// === Types ===
-
-/// The set of tags carried by a party.
-public struct PartyTags has store {
-    tags: VecSet<String>,
-}
 
 // === Events ===
 
@@ -69,27 +60,22 @@ public struct TagsClearedEvent has copy, drop {
 
 // === Write API ===
 
-/// Adds a tag to the party. Aborts if empty, too long, already present, or the
-/// max is reached.
+/// Adds a tag to the party. Aborts if empty or too long here, and in
+/// `typed_set` if already present or the max is reached.
 public fun add_tag(self: &mut Party, cap: &PartyAdminCap, tag: String) {
     assert!(!tag.is_empty(), EEmptyTag);
     assert!(tag.length() <= MAX_TAG_LENGTH, ETagTooLong);
     let party_id = self.id();
-    let tags = tags_mut_or_init(self, cap);
-    assert!(!tags.contains(&tag), EDuplicateTag);
-    assert!(tags.length() < MAX_TAGS, EMaxTagsExceeded);
-    tags.insert(tag);
+    set::add(self.uid_mut(cap), TagsKey(), tag, MAX_TAGS);
     emit(TagAddedEvent { party_id, tag });
 }
 
-/// Removes a tag from the party. Aborts if not present.
+/// Removes a tag from the party. Aborts in `typed_set` if not present. The
+/// whole field is dropped when the last tag leaves, so `has_tags` tracks
+/// "carries tags", not "has ever tagged".
 public fun remove_tag(self: &mut Party, cap: &PartyAdminCap, tag: String) {
     let party_id = self.id();
-    let uid = self.uid_mut(cap);
-    assert!(df::exists(uid, TagsKey()), ETagNotPresent);
-    let tags = borrow_tags_mut(uid);
-    assert!(tags.contains(&tag), ETagNotPresent);
-    tags.remove(&tag);
+    set::remove(self.uid_mut(cap), TagsKey(), tag);
     emit(TagRemovedEvent { party_id, tag });
 }
 
@@ -97,45 +83,25 @@ public fun remove_tag(self: &mut Party, cap: &PartyAdminCap, tag: String) {
 public fun clear_tags(self: &mut Party, cap: &PartyAdminCap) {
     let party_id = self.id();
     let uid = self.uid_mut(cap);
-    if (df::exists(uid, TagsKey())) {
-        let PartyTags { .. } = df::remove(uid, TagsKey());
+    if (set::exists(uid, TagsKey())) {
+        set::clear<TagsKey, String>(uid, TagsKey());
         emit(TagsClearedEvent { party_id });
     }
 }
 
 // === Views ===
 
-/// Whether the party has a tag set.
+/// Whether the party carries any tags.
 public fun has_tags(self: &Party): bool {
-    df::exists(self.uid(), TagsKey())
+    set::exists(self.uid(), TagsKey())
 }
 
 /// Whether the party carries the given tag.
 public fun has_tag(self: &Party, tag: String): bool {
-    if (!df::exists(self.uid(), TagsKey())) return false;
-    borrow_tags(self.uid()).contains(&tag)
+    set::contains(self.uid(), TagsKey(), &tag)
 }
 
 /// The party's tags.
 public fun tags(self: &Party): vector<String> {
-    if (!df::exists(self.uid(), TagsKey())) return vector[];
-    *borrow_tags(self.uid()).keys()
-}
-
-// === Private ===
-
-fun borrow_tags(uid: &UID): &VecSet<String> {
-    &df::borrow<TagsKey, PartyTags>(uid, TagsKey()).tags
-}
-
-fun borrow_tags_mut(uid: &mut UID): &mut VecSet<String> {
-    &mut df::borrow_mut<TagsKey, PartyTags>(uid, TagsKey()).tags
-}
-
-fun tags_mut_or_init(self: &mut Party, cap: &PartyAdminCap): &mut VecSet<String> {
-    let uid = self.uid_mut(cap);
-    if (!df::exists(uid, TagsKey())) {
-        df::add(uid, TagsKey(), PartyTags { tags: vec_set::empty() });
-    };
-    borrow_tags_mut(uid)
+    set::keys(self.uid(), TagsKey())
 }

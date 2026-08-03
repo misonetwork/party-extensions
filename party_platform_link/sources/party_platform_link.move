@@ -11,7 +11,10 @@
 /// (`party_social`, `party_music`, …). All writes are gated by the
 /// `PartyAdminCap` via `uid_mut`; views are permissionless. Events are
 /// phantom-typed per platform so an indexer can see which platform changed —
-/// dynamic-field mutations are not otherwise observable.
+/// dynamic-field mutations are not otherwise observable. These events carry no
+/// payload by convention: they are change signals, and the indexer re-reads the
+/// field. (Small, stable payloads are the exception elsewhere — `party_media`'s
+/// quilt id, `party_featured_drop`'s pressing id, a role or tag string.)
 module party_platform_link::party_platform_link;
 
 use miso_party::party::{Party, PartyAdminCap};

@@ -8,7 +8,9 @@
 /// Two shapes here. A website / booking page / EPK has **no reconstructable
 /// handle** — the URL *is* the identity — so those store a full `url`. The
 /// creator platforms have a handle like the social/music payloads and store just
-/// that, with the URL rebuilt client-side. All non-empty-validated only.
+/// that, with the URL rebuilt client-side. All validated non-empty plus the
+/// shared max-length backstops (`platform_link::max_identifier_length()` /
+/// `max_url_length()`).
 module party_pro_link::party_pro_link;
 
 use platform_link::platform_link::{Self, PlatformLink};
@@ -32,14 +34,6 @@ const EEmptyValue: u64 = 0;
 const EUrlTooLong: u64 = 1;
 /// The handle exceeded the maximum length.
 const EHandleTooLong: u64 = 2;
-
-// === Constants ===
-
-/// Maximum url length in bytes (matches `party_cta`). A storage backstop.
-const MAX_URL_LENGTH: u64 = 2000;
-/// Maximum handle length in bytes. A generous storage backstop, not format
-/// validation.
-const MAX_HANDLE_LENGTH: u64 = 256;
 
 // === Types (URL-based — the URL is the identity) ===
 
@@ -70,42 +64,42 @@ public struct KofiData has copy, drop, store { handle: String }
 /// Builds a website link from a full URL. Aborts if empty.
 public fun website(url: String): PlatformLink<WebsiteData> {
     assert!(!url.is_empty(), EEmptyValue);
-    assert!(url.length() <= MAX_URL_LENGTH, EUrlTooLong);
+    assert!(url.length() <= platform_link::max_url_length(), EUrlTooLong);
     platform_link::new(WebsiteData { url })
 }
 
 /// Builds a booking-page link from a full URL. Aborts if empty.
 public fun booking_page(url: String): PlatformLink<BookingPageData> {
     assert!(!url.is_empty(), EEmptyValue);
-    assert!(url.length() <= MAX_URL_LENGTH, EUrlTooLong);
+    assert!(url.length() <= platform_link::max_url_length(), EUrlTooLong);
     platform_link::new(BookingPageData { url })
 }
 
 /// Builds a management-page link from a full URL. Aborts if empty.
 public fun management_page(url: String): PlatformLink<ManagementPageData> {
     assert!(!url.is_empty(), EEmptyValue);
-    assert!(url.length() <= MAX_URL_LENGTH, EUrlTooLong);
+    assert!(url.length() <= platform_link::max_url_length(), EUrlTooLong);
     platform_link::new(ManagementPageData { url })
 }
 
 /// Builds a publisher-page link from a full URL. Aborts if empty.
 public fun publisher_page(url: String): PlatformLink<PublisherPageData> {
     assert!(!url.is_empty(), EEmptyValue);
-    assert!(url.length() <= MAX_URL_LENGTH, EUrlTooLong);
+    assert!(url.length() <= platform_link::max_url_length(), EUrlTooLong);
     platform_link::new(PublisherPageData { url })
 }
 
 /// Builds a label-page link from a full URL. Aborts if empty.
 public fun label_page(url: String): PlatformLink<LabelPageData> {
     assert!(!url.is_empty(), EEmptyValue);
-    assert!(url.length() <= MAX_URL_LENGTH, EUrlTooLong);
+    assert!(url.length() <= platform_link::max_url_length(), EUrlTooLong);
     platform_link::new(LabelPageData { url })
 }
 
 /// Builds an EPK link from a full URL. Aborts if empty.
 public fun epk(url: String): PlatformLink<EpkData> {
     assert!(!url.is_empty(), EEmptyValue);
-    assert!(url.length() <= MAX_URL_LENGTH, EUrlTooLong);
+    assert!(url.length() <= platform_link::max_url_length(), EUrlTooLong);
     platform_link::new(EpkData { url })
 }
 
@@ -114,21 +108,21 @@ public fun epk(url: String): PlatformLink<EpkData> {
 /// Builds a Patreon link from a handle. Aborts if empty.
 public fun patreon(handle: String): PlatformLink<PatreonData> {
     assert!(!handle.is_empty(), EEmptyValue);
-    assert!(handle.length() <= MAX_HANDLE_LENGTH, EHandleTooLong);
+    assert!(handle.length() <= platform_link::max_identifier_length(), EHandleTooLong);
     platform_link::new(PatreonData { handle })
 }
 
 /// Builds a Substack link from a subdomain. Aborts if empty.
 public fun substack(subdomain: String): PlatformLink<SubstackData> {
     assert!(!subdomain.is_empty(), EEmptyValue);
-    assert!(subdomain.length() <= MAX_HANDLE_LENGTH, EHandleTooLong);
+    assert!(subdomain.length() <= platform_link::max_identifier_length(), EHandleTooLong);
     platform_link::new(SubstackData { subdomain })
 }
 
 /// Builds a Ko-fi link from a handle. Aborts if empty.
 public fun kofi(handle: String): PlatformLink<KofiData> {
     assert!(!handle.is_empty(), EEmptyValue);
-    assert!(handle.length() <= MAX_HANDLE_LENGTH, EHandleTooLong);
+    assert!(handle.length() <= platform_link::max_identifier_length(), EHandleTooLong);
     platform_link::new(KofiData { handle })
 }
 

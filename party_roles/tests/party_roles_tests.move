@@ -8,6 +8,9 @@ use miso_party::party;
 use party_roles::party_roles as roles;
 use std::unit_test::{assert_eq, destroy};
 
+// Mirrors `party::EUnauthorized` (party.move) for the wrong-cap abort test.
+const EUnauthorized: u64 = 0;
+
 fun new_party(ctx: &mut TxContext): (party::Party, party::PartyAdminCap) {
     {
         let clock = sui::clock::create_for_testing(ctx);
@@ -40,6 +43,12 @@ fun add_remove_and_query() {
     assert!(!roles::has_role(&p, roles::producer()));
     assert_eq!(roles::roles(&p).length(), 2);
 
+    // Removing the last roles reclaims the field — no empty set lingers.
+    roles::remove_role(&mut p, &cap, roles::artist());
+    roles::remove_role(&mut p, &cap, roles::custom(b"Visual Artist".to_string()));
+    assert!(!roles::has_roles(&p));
+
+    roles::add_role(&mut p, &cap, roles::band());
     roles::clear_roles(&mut p, &cap);
     assert!(!roles::has_roles(&p));
 
@@ -53,7 +62,7 @@ fun rejects_empty_custom() {
     abort
 }
 
-#[test, expected_failure(abort_code = 2, location = party_roles::party_roles)] // EDuplicateRole
+#[test, expected_failure(abort_code = 0, location = typed_set::typed_set)] // EDuplicateItem
 fun rejects_duplicate() {
     let ctx = &mut tx_context::dummy();
     let (mut p, cap) = new_party(ctx);
@@ -62,7 +71,7 @@ fun rejects_duplicate() {
     abort
 }
 
-#[test, expected_failure(abort_code = 3, location = party_roles::party_roles)] // ERoleNotPresent
+#[test, expected_failure(abort_code = 1, location = typed_set::typed_set)] // EItemNotPresent
 fun remove_absent_aborts() {
     let ctx = &mut tx_context::dummy();
     let (mut p, cap) = new_party(ctx);
@@ -71,7 +80,7 @@ fun remove_absent_aborts() {
     abort
 }
 
-#[test, expected_failure(abort_code = 4, location = party_roles::party_roles)] // EMaxRolesExceeded
+#[test, expected_failure(abort_code = 2, location = typed_set::typed_set)] // EMaxItemsExceeded
 fun rejects_over_max() {
     let ctx = &mut tx_context::dummy();
     let (mut p, cap) = new_party(ctx);
@@ -85,5 +94,16 @@ fun rejects_over_max() {
     roles::add_role(&mut p, &cap, roles::label());
     roles::add_role(&mut p, &cap, roles::collective());
     5u64.do!(|i| roles::add_role(&mut p, &cap, roles::custom(std::string::utf8(vector[((65 + i) as u8)]))));
+    abort
+}
+
+#[test, expected_failure(abort_code = EUnauthorized, location = miso_party::party)]
+fun add_role_with_wrong_cap_aborts() {
+    let ctx = &mut tx_context::dummy();
+    let (mut p, _cap) = new_party(ctx);
+    let (_other, other_cap) = new_party(ctx);
+
+    // A cap for a different party must not authorize writes to `p`.
+    roles::add_role(&mut p, &other_cap, roles::artist());
     abort
 }

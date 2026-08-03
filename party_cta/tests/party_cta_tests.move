@@ -8,6 +8,9 @@ use miso_party::party;
 use party_cta::party_cta as cta;
 use std::unit_test::{assert_eq, destroy};
 
+// Mirrors `party::EUnauthorized` (party.move) for the wrong-cap abort test.
+const EUnauthorized: u64 = 0;
+
 fun new_party(ctx: &mut TxContext): (party::Party, party::PartyAdminCap) {
     {
         let clock = sui::clock::create_for_testing(ctx);
@@ -72,5 +75,18 @@ fun rejects_over_max() {
     let mut list = vector[];
     21u64.do!(|_| list.push_back(cta::new_cta(b"L".to_string(), b"https://x.com".to_string())));
     cta::set_ctas(&mut p, &cap, list);
+    abort
+}
+
+#[test, expected_failure(abort_code = EUnauthorized, location = miso_party::party)]
+fun set_ctas_with_wrong_cap_aborts() {
+    let ctx = &mut tx_context::dummy();
+    let (mut p, _cap) = new_party(ctx);
+    let (_other, other_cap) = new_party(ctx);
+
+    // A cap for a different party must not authorize writes to `p`.
+    cta::set_ctas(&mut p, &other_cap, vector[
+        cta::new_cta(b"Tickets".to_string(), b"https://dice.fm/artist".to_string()),
+    ]);
     abort
 }

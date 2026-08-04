@@ -64,7 +64,7 @@ that surfaces comes from the authorization core:
 ## Dependencies
 
 - `miso_party` (local) — the `Party` / `PartyAdminCap` authorization core.
-- `miso_pressing` (local, `../../miso-drop/move`) — the `Pressing` type. This
+- `miso_pressing` (local, `../../miso-pressing/move`) — the `Pressing` type. This
   is the one party extension that reaches into the protocol.
 
 Local deps, not git: `miso_pressing`'s own dependencies (`miso`,

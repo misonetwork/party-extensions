@@ -87,6 +87,6 @@ sui move build
 sui move test
 ```
 
-`party_featured_drop` additionally requires the `miso-drop`, `miso-protocol`,
+`party_featured_drop` additionally requires the `miso-pressing`, `miso-protocol`,
 and `miso-record` sibling checkouts (its protocol dependency uses cross-repo
 local paths).

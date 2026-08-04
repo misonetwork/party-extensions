@@ -12,4 +12,4 @@ authors = ["Miso Labs, Inc. (build@miso.network)"]
 # subtree and there's no duplicate-package conflict.
 [dependencies]
 miso_party = { local = "../../miso-party" }
-miso_pressing = { local = "../../miso-drop/move" }
+miso_pressing = { local = "../../miso-pressing/move" }

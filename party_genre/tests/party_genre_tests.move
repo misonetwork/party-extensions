@@ -169,3 +169,42 @@ fun add_genre_with_wrong_cap_aborts() {
     pg::add_genre(&mut p, &other_cap, &genre);
     abort
 }
+
+#[test, expected_failure(abort_code = EUnauthorized, location = miso_party::party)]
+fun add_genre_with_wrong_cap_on_full_set_aborts() {
+    let mut scenario = ts::begin(CURATOR);
+    g::init_for_testing(scenario.ctx());
+
+    // Mint MAX_GENRES + 1 distinct genres (single-letter names A, B, …).
+    scenario.next_tx(CURATOR);
+    let mut ids = vector[];
+    {
+        let cap = scenario.take_from_sender<GenreRegistryCap>();
+        let mut registry = scenario.take_shared<GenreRegistry>();
+        (MAX_GENRES + 1).do!(|i| {
+            let name = std::string::utf8(vector[((65 + i) as u8)]);
+            ids.push_back(g::derive_genre_id(&registry, name));
+            g::new(&cap, &mut registry, name);
+        });
+        ts::return_shared(registry);
+        scenario.return_to_sender(cap);
+    };
+
+    scenario.next_tx(CURATOR);
+    let (mut p, cap) = new_party(scenario.ctx());
+    let (_other, other_cap) = new_party(scenario.ctx());
+
+    // Fill `p`'s genre set to MAX_GENRES so a capacity check, if it ran
+    // before authorization, would also abort here — proving the cap-gate
+    // really does run first, not just when there's room to add.
+    MAX_GENRES.do!(|i| {
+        let genre = scenario.take_immutable_by_id<Genre>(*ids.borrow(i));
+        pg::add_genre(&mut p, &cap, &genre);
+        ts::return_immutable(genre);
+    });
+
+    // A cap for a different party must abort on authorization, not capacity.
+    let last = scenario.take_immutable_by_id<Genre>(*ids.borrow(MAX_GENRES));
+    pg::add_genre(&mut p, &other_cap, &last);
+    abort
+}

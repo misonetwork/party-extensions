@@ -1,5 +1,5 @@
 [package]
-name = "party_featured_drop"
+name = "party_featured_pressing"
 edition = "2024"
 license = "Apache 2.0"
 authors = ["Miso Labs, Inc. (build@miso.network)"]
@@ -11,5 +11,5 @@ authors = ["Miso Labs, Inc. (build@miso.network)"]
 # has no dependencies of its own, so it shares no package with the pressing
 # subtree and there's no duplicate-package conflict.
 [dependencies]
-miso_party = { local = "../../miso-party" }
-miso_pressing = { local = "../../miso-pressing/move" }
+miso_party = { local = "../../../misonetwork/party" }
+miso_pressing = { local = "../../pressing/move" }

@@ -98,3 +98,22 @@ fun add_tag_with_wrong_cap_aborts() {
     tags::add_tag(&mut p, &other_cap, b"ambient".to_string());
     abort
 }
+
+#[test, expected_failure(abort_code = EUnauthorized, location = miso_party::party)]
+fun add_tag_with_wrong_cap_on_full_set_aborts() {
+    let ctx = &mut tx_context::dummy();
+    let (mut p, cap) = new_party(ctx);
+    let (_other, other_cap) = new_party(ctx);
+
+    // Fill `p`'s tag set to MAX_TAGS (30) so a capacity check, if it ran
+    // before authorization, would also abort here — proving the cap-gate
+    // really does run first, not just when there's room to add.
+    30u64.do!(|i| {
+        let tag = std::string::utf8(vector[b"t"[0], ((65 + i) as u8)]);
+        tags::add_tag(&mut p, &cap, tag);
+    });
+
+    // A cap for a different party must abort on authorization, not capacity.
+    tags::add_tag(&mut p, &other_cap, b"ambient".to_string());
+    abort
+}

@@ -5,19 +5,19 @@
 version = 4
 
 [pinned.testnet.MoveStdlib]
-source = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/move-stdlib", rev = "b9149cbf0b2cb9ae5ed830407a9b48c7ae3fd36c" }
+source = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/move-stdlib", rev = "06734f6ff0af45d8632a14a4dc4b100197f6b1a2" }
 use_environment = "testnet"
 manifest_digest = "C4FE4C91DE74CBF223B2E380AE40F592177D21870DC2D7EB6227D2D694E05363"
 deps = {}
 
 [pinned.testnet.Sui]
-source = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/sui-framework", rev = "b9149cbf0b2cb9ae5ed830407a9b48c7ae3fd36c" }
+source = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/sui-framework", rev = "06734f6ff0af45d8632a14a4dc4b100197f6b1a2" }
 use_environment = "testnet"
 manifest_digest = "7AFB66695545775FBFBB2D3078ADFD084244D5002392E837FDE21D9EA1C6D01C"
 deps = { MoveStdlib = "MoveStdlib" }
 
 [pinned.testnet.miso_party]
-source = { local = "../../miso-party" }
+source = { local = "../../../misonetwork/party" }
 use_environment = "testnet"
 manifest_digest = "5745706258F61D6CE210904B3E6AE87A73CE9D31A6F93BE4718C442529332A87"
 deps = { std = "MoveStdlib", sui = "Sui" }
@@ -25,5 +25,11 @@ deps = { std = "MoveStdlib", sui = "Sui" }
 [pinned.testnet.party_roles]
 source = { root = true }
 use_environment = "testnet"
-manifest_digest = "72EEC2D286028FB9042895523022345569F72F69A5A431A3869E457D1422957D"
-deps = { miso_party = "miso_party", std = "MoveStdlib", sui = "Sui" }
+manifest_digest = "ABFE546353C266B273C58DDEB855032B51A5B34FB3D87726843E3DA745EB0B62"
+deps = { miso_party = "miso_party", std = "MoveStdlib", sui = "Sui", typed_set = "typed_set" }
+
+[pinned.testnet.typed_set]
+source = { git = "https://github.com/unconfirmedlabs/typed_set.git", subdir = ".", rev = "a63230bbc202f19bea315d396dea73d1ad111633" }
+use_environment = "testnet"
+manifest_digest = "5745706258F61D6CE210904B3E6AE87A73CE9D31A6F93BE4718C442529332A87"
+deps = { std = "MoveStdlib", sui = "Sui" }

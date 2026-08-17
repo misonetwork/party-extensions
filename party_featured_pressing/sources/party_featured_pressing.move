@@ -21,7 +21,7 @@
 ///
 /// One slot, replace-in-place: `set_featured` overwrites any existing pin.
 /// Gated by the `PartyAdminCap`; views are permissionless.
-module party_featured_drop::party_featured_drop;
+module party_featured_pressing::party_featured_pressing;
 
 use miso_party::party::{Party, PartyAdminCap};
 use miso_pressing::pressing::Pressing;

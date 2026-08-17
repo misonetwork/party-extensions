@@ -2,11 +2,11 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #[test_only]
-module party_featured_drop::party_featured_drop_tests;
+module party_featured_pressing::party_featured_pressing_tests;
 
 use miso_party::party;
 use miso_pressing::pressing;
-use party_featured_drop::party_featured_drop as fd;
+use party_featured_pressing::party_featured_pressing as fd;
 use std::unit_test::{assert_eq, destroy};
 
 // Mirrors `party::EUnauthorized` (party.move) for the wrong-cap abort test.

@@ -13,6 +13,13 @@ use std::unit_test::{assert_eq, destroy};
 // Mirrors `party::EUnauthorized` (party.move) for the wrong-cap abort test.
 const EUnauthorized: u64 = 0;
 
+/// A string of `len` 'A' bytes, for exercising the length bounds.
+fun long_string(len: u64): std::string::String {
+    let mut s = vector<u8>[];
+    len.do!(|_| s.push_back(65));
+    s.to_string()
+}
+
 fun new_party(ctx: &mut TxContext): (party::Party, party::PartyAdminCap) {
     {
         let clock = sui::clock::create_for_testing(ctx);
@@ -87,6 +94,31 @@ fun clear_profile_removes_it() {
     profile::clear_profile(&mut p, &cap); // no-op
     destroy(p);
     destroy(cap);
+}
+
+/// The bound is inclusive, and it is on bytes rather than characters — 8 KB of
+/// bio is stored intact.
+#[test]
+fun bio_long_at_max_length_is_accepted() {
+    let ctx = &mut tx_context::dummy();
+    let (mut p, cap) = new_party(ctx);
+
+    let bio = long_string(8192);
+    profile::set_profile(&mut p, &cap, b"bio".to_string(), option::some(bio), option::none(), vector[]);
+    assert_eq!(profile::profile(&p).bio_long().destroy_some().as_bytes().length(), 8192);
+
+    destroy(p);
+    destroy(cap);
+}
+
+#[test, expected_failure(abort_code = profile::EBioLongTooLong)]
+fun rejects_bio_long_over_max_length() {
+    let ctx = &mut tx_context::dummy();
+    let (mut p, cap) = new_party(ctx);
+    // 8193 bytes — one past the bound.
+    let bio = long_string(8193);
+    profile::set_profile(&mut p, &cap, b"bio".to_string(), option::some(bio), option::none(), vector[]);
+    abort
 }
 
 #[test, expected_failure(abort_code = 0, location = party_profile::party_profile)] // EEmptyBioShort

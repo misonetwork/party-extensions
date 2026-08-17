@@ -1,4 +1,4 @@
-# party_featured_drop
+# party_featured_pressing
 
 The one drop a party wants to headline — the "featured release" slot on a
 profile. A party's full discography is *derived* (an indexer lists every

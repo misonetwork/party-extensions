@@ -43,8 +43,13 @@ const EDuplicateLanguage: u64 = 6;
 
 /// Maximum length of the short bio in bytes.
 const MAX_BIO_SHORT_LENGTH: u64 = 300;
-/// Maximum length of the long bio in bytes.
-const MAX_BIO_LONG_LENGTH: u64 = 5000;
+/// Maximum length of the long bio in bytes — 8 KB, matching
+/// `release_description`. A storage backstop, not an editorial limit: it sits
+/// well above any bio anyone is expected to write, because this package
+/// publishes immutable and a ceiling that turns out to be too low can never be
+/// raised, while one that is too high costs only the gas of the writer who
+/// fills it.
+const MAX_BIO_LONG_LENGTH: u64 = 8192;
 /// Maximum number of language tags.
 const MAX_LANGUAGES: u64 = 10;
 

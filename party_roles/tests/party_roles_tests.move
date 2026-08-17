@@ -107,3 +107,28 @@ fun add_role_with_wrong_cap_aborts() {
     roles::add_role(&mut p, &other_cap, roles::artist());
     abort
 }
+
+#[test, expected_failure(abort_code = EUnauthorized, location = miso_party::party)]
+fun add_role_with_wrong_cap_on_full_set_aborts() {
+    let ctx = &mut tx_context::dummy();
+    let (mut p, cap) = new_party(ctx);
+    let (_other, other_cap) = new_party(ctx);
+
+    // Fill `p`'s role set to MAX_ROLES (12): the 8 canonical roles + 4
+    // customs. A capacity check, if it ran before authorization, would also
+    // abort here — proving the cap-gate really does run first, not just
+    // when there's room to add.
+    roles::add_role(&mut p, &cap, roles::artist());
+    roles::add_role(&mut p, &cap, roles::producer());
+    roles::add_role(&mut p, &cap, roles::dj());
+    roles::add_role(&mut p, &cap, roles::composer());
+    roles::add_role(&mut p, &cap, roles::songwriter());
+    roles::add_role(&mut p, &cap, roles::band());
+    roles::add_role(&mut p, &cap, roles::label());
+    roles::add_role(&mut p, &cap, roles::collective());
+    4u64.do!(|i| roles::add_role(&mut p, &cap, roles::custom(std::string::utf8(vector[((65 + i) as u8)]))));
+
+    // A cap for a different party must abort on authorization, not capacity.
+    roles::add_role(&mut p, &other_cap, roles::custom(std::string::utf8(vector[((65 + 4u64) as u8)])));
+    abort
+}

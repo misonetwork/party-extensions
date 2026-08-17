@@ -52,7 +52,7 @@ for documenting an extension — required reading before adding one — lives in
 | [`party_tags`](party_tags) | Free-form tag set (moods, scenes, descriptors) |
 | [`party_media`](party_media) | Imagery: one Walrus quilt blob id (avatar/header are quilt patches, a client convention) |
 | [`party_cta`](party_cta) | Ordered external call-to-action links (`{ label, url }`, position is priority) |
-| [`party_featured_drop`](party_featured_drop) | The featured `Pressing` pin — proven against the live protocol object |
+| [`party_featured_pressing`](party_featured_pressing) | The featured `Pressing` pin — proven against the live protocol object |
 | [`party_wallet`](party_wallet) | The party's inbox door: receive transfer-to-object sends, redeem accumulator funds |
 
 ## Conventions
@@ -61,7 +61,7 @@ for documenting an extension — required reading before adding one — lives in
   off-chain, so every write emits an event carrying `party_id`. Payloads are
   not re-included — an indexer re-reads the field — except small, stable ones
   (ids and short display strings: `party_media`'s quilt id,
-  `party_featured_drop`'s pressing id, role/tag strings), which ride in.
+  `party_featured_pressing`'s pressing id, role/tag strings), which ride in.
 - **Validation is split on purpose.** Primitives enforce set mechanics
   (duplicate / not-present / over-max — aborts come from `typed_set` or
   `platform_link` with their codes). Extensions enforce domain rules
@@ -87,6 +87,6 @@ sui move build
 sui move test
 ```
 
-`party_featured_drop` additionally requires the `miso-pressing`, `miso-protocol`,
+`party_featured_pressing` additionally requires the `miso-pressing`, `miso-protocol`,
 and `miso-record` sibling checkouts (its protocol dependency uses cross-repo
 local paths).

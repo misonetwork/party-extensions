@@ -11,5 +11,5 @@ authors = ["Miso Labs, Inc. (build@miso.network)"]
 # has no dependencies of its own, so it shares no package with the pressing
 # subtree and there's no duplicate-package conflict.
 [dependencies]
-miso_party = { local = "../../../misonetwork/party" }
+miso_party = { git = "https://github.com/misonetwork/party.git", rev = "0127a1501f56461a9345aab040dfde8c62a81dd0" }
 miso_pressing = { local = "../../pressing/move" }

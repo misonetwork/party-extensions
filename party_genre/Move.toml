@@ -7,4 +7,4 @@ authors = ["Miso Labs, Inc. (build@miso.network)"]
 [dependencies]
 miso_party = { local = "../../../misonetwork/party" }
 typed_set = { git = "https://github.com/unconfirmedlabs/typed_set.git", rev = "a63230bbc202f19bea315d396dea73d1ad111633" }
-genre = { local = "../../protocol-extensions/lib/genre" }
+genre = { local = "../../../misonetwork/genre" }

@@ -21,7 +21,7 @@ fun new_party(ctx: &mut TxContext): (party::Party, party::PartyAdminCap) {
     }
 }
 
-fun new_pressing(ctx: &mut TxContext): pressing::Pressing {
+fun new_pressing(ctx: &mut TxContext): (pressing::Pressing, pressing::PressingAdminCap) {
     pressing::new_for_testing(
         object::id_from_address(@0xCAFE), // release id (fabricated for the test)
         ctx,
@@ -38,13 +38,13 @@ fun set_read_replace_clear() {
     assert!(fd::featured(&p).is_none());
 
     // Feature a pressing — stores its id.
-    let p1 = new_pressing(ctx);
+    let (p1, p1_cap) = new_pressing(ctx);
     fd::set_featured(&mut p, &cap, &p1);
     assert!(fd::has_featured(&p));
     assert_eq!(fd::featured(&p).destroy_some(), pressing::id(&p1));
 
     // Replace with a different pressing — one slot, overwrites in place.
-    let p2 = new_pressing(ctx);
+    let (p2, p2_cap) = new_pressing(ctx);
     fd::set_featured(&mut p, &cap, &p2);
     assert_eq!(fd::featured(&p).destroy_some(), pressing::id(&p2));
 
@@ -54,8 +54,8 @@ fun set_read_replace_clear() {
     assert!(fd::featured(&p).is_none());
     fd::clear_featured(&mut p, &cap);
 
-    pressing::destroy_for_testing(p1);
-    pressing::destroy_for_testing(p2);
+    pressing::destroy_for_testing(p1, p1_cap);
+    pressing::destroy_for_testing(p2, p2_cap);
     destroy(p);
     destroy(cap);
 }
@@ -67,7 +67,7 @@ fun set_featured_with_wrong_cap_aborts() {
     let (_other, other_cap) = new_party(ctx);
 
     // A cap for a different party must not authorize writes to `p`.
-    let pr = new_pressing(ctx);
+    let (pr, _pr_cap) = new_pressing(ctx);
     fd::set_featured(&mut p, &other_cap, &pr);
     abort
 }

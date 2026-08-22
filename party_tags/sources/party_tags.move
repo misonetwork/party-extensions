@@ -65,7 +65,7 @@ public struct TagsClearedEvent has copy, drop {
 public fun add_tag(self: &mut Party, cap: &PartyAdminCap, tag: String) {
     assert!(!tag.is_empty(), EEmptyTag);
     assert!(tag.length() <= MAX_TAG_LENGTH, ETagTooLong);
-    let party_id = self.id();
+    let party_id = object::id(self);
     set::add(self.uid_mut(cap), TagsKey(), tag, MAX_TAGS);
     emit(TagAddedEvent { party_id, tag });
 }
@@ -74,14 +74,14 @@ public fun add_tag(self: &mut Party, cap: &PartyAdminCap, tag: String) {
 /// whole field is dropped when the last tag leaves, so `has_tags` tracks
 /// "carries tags", not "has ever tagged".
 public fun remove_tag(self: &mut Party, cap: &PartyAdminCap, tag: String) {
-    let party_id = self.id();
+    let party_id = object::id(self);
     set::remove(self.uid_mut(cap), TagsKey(), tag);
     emit(TagRemovedEvent { party_id, tag });
 }
 
 /// Removes the party's entire tag set. No-op if none is set.
 public fun clear_tags(self: &mut Party, cap: &PartyAdminCap) {
-    let party_id = self.id();
+    let party_id = object::id(self);
     let uid = self.uid_mut(cap);
     if (set::exists(uid, TagsKey())) {
         set::clear<TagsKey, String>(uid, TagsKey());

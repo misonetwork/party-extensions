@@ -115,7 +115,7 @@ public fun role_name(self: &ArtistRole): String {
 /// Adds a role to the party. Aborts in `typed_set` if already held or the max
 /// is reached.
 public fun add_role(self: &mut Party, cap: &PartyAdminCap, role: ArtistRole) {
-    let party_id = self.id();
+    let party_id = object::id(self);
     let name = role.name();
     set::add(self.uid_mut(cap), RolesKey(), role, MAX_ROLES);
     emit(RoleAddedEvent { party_id, role: name });
@@ -124,7 +124,7 @@ public fun add_role(self: &mut Party, cap: &PartyAdminCap, role: ArtistRole) {
 /// Removes a role from the party. Aborts in `typed_set` if not held. The whole
 /// field is dropped when the last role leaves.
 public fun remove_role(self: &mut Party, cap: &PartyAdminCap, role: ArtistRole) {
-    let party_id = self.id();
+    let party_id = object::id(self);
     let name = role.name();
     set::remove(self.uid_mut(cap), RolesKey(), role);
     emit(RoleRemovedEvent { party_id, role: name });
@@ -132,7 +132,7 @@ public fun remove_role(self: &mut Party, cap: &PartyAdminCap, role: ArtistRole) 
 
 /// Removes the party's entire role set. No-op if none is set.
 public fun clear_roles(self: &mut Party, cap: &PartyAdminCap) {
-    let party_id = self.id();
+    let party_id = object::id(self);
     let uid = self.uid_mut(cap);
     if (set::exists(uid, RolesKey())) {
         set::clear<RolesKey, ArtistRole>(uid, RolesKey());

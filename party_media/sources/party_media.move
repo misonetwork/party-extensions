@@ -60,7 +60,7 @@ public struct MediaClearedEvent has copy, drop {
 /// Sets (or replaces) the party's media quilt. Aborts on a zero id.
 public fun set_media(self: &mut Party, cap: &PartyAdminCap, quilt: u256) {
     assert!(quilt != 0, EZeroQuilt);
-    let party_id = self.id();
+    let party_id = object::id(self);
     let uid = self.uid_mut(cap);
     if (df::exists(uid, MediaKey())) {
         df::borrow_mut<MediaKey, Media>(uid, MediaKey()).quilt = quilt;
@@ -72,7 +72,7 @@ public fun set_media(self: &mut Party, cap: &PartyAdminCap, quilt: u256) {
 
 /// Removes the party's media. No-op if none is set.
 public fun clear_media(self: &mut Party, cap: &PartyAdminCap) {
-    let party_id = self.id();
+    let party_id = object::id(self);
     let uid = self.uid_mut(cap);
     if (df::exists(uid, MediaKey())) {
         let Media { .. } = df::remove(uid, MediaKey());

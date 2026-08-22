@@ -43,7 +43,7 @@ fun new_party(scenario: &mut ts::Scenario, group: bool): ID {
     let kind = if (group) party::new_group_kind() else party::new_individual_kind();
     let (p, cap) = party::new(kind, b"Test Artist".to_string(), &clock, ctx);
     clock.destroy_for_testing();
-    let party_id = p.id();
+    let party_id = object::id(&p);
     p.share(&cap);
     transfer::public_transfer(cap, OPERATOR);
     party_id

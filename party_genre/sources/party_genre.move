@@ -58,8 +58,8 @@ public struct GenresClearedEvent has copy, drop {
 /// can be tagged. Aborts in `typed_set` if already present or the max is
 /// reached.
 public fun add_genre(self: &mut Party, cap: &PartyAdminCap, genre: &Genre) {
-    let party_id = self.id();
-    let genre_id = genre.id();
+    let party_id = object::id(self);
+    let genre_id = object::id(genre);
     set::add(self.uid_mut(cap), GenresKey(), genre_id, MAX_GENRES);
     emit(GenreAddedEvent { party_id, genre_id });
 }
@@ -67,14 +67,14 @@ public fun add_genre(self: &mut Party, cap: &PartyAdminCap, genre: &Genre) {
 /// Removes a genre from the party. Aborts in `typed_set` if not present. The
 /// whole field is dropped when the last genre leaves.
 public fun remove_genre(self: &mut Party, cap: &PartyAdminCap, genre_id: ID) {
-    let party_id = self.id();
+    let party_id = object::id(self);
     set::remove(self.uid_mut(cap), GenresKey(), genre_id);
     emit(GenreRemovedEvent { party_id, genre_id });
 }
 
 /// Removes the party's entire genre set. No-op if none is set.
 public fun clear_genres(self: &mut Party, cap: &PartyAdminCap) {
-    let party_id = self.id();
+    let party_id = object::id(self);
     let uid = self.uid_mut(cap);
     if (set::exists(uid, GenresKey())) {
         set::clear<GenresKey, ID>(uid, GenresKey());

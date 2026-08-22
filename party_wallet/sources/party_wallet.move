@@ -85,7 +85,7 @@ public fun receive<T: key + store>(
     cap: &PartyAdminCap,
     object_to_receive: Receiving<T>,
 ): T {
-    let party_id = self.id();
+    let party_id = object::id(self);
     take(self.uid_mut(cap), party_id, object_to_receive)
 }
 
@@ -96,7 +96,7 @@ public fun receive_multiple<T: key + store>(
     objects_to_receive: vector<Receiving<T>>,
 ): vector<T> {
     assert!(!objects_to_receive.is_empty(), ENothingToReceive);
-    let party_id = self.id();
+    let party_id = object::id(self);
     let uid = self.uid_mut(cap);
     objects_to_receive.map!(|object_to_receive| take(uid, party_id, object_to_receive))
 }
@@ -113,7 +113,7 @@ public fun receive_balance<Currency>(
     coins: vector<Receiving<Coin<Currency>>>,
 ): Balance<Currency> {
     assert!(!coins.is_empty(), ENothingToReceive);
-    let party_id = self.id();
+    let party_id = object::id(self);
     let count = coins.length();
     let balance = hikida::receive_balance(self.uid_mut(cap), coins);
     emit(CoinsReceivedEvent<Currency> { party_id, amount: balance.value(), coins: count });
@@ -128,7 +128,7 @@ public fun receive_coin<Currency>(
     ctx: &mut TxContext,
 ): Coin<Currency> {
     assert!(!coins.is_empty(), ENothingToReceive);
-    let party_id = self.id();
+    let party_id = object::id(self);
     let count = coins.length();
     let coin = hikida::receive_coin(self.uid_mut(cap), coins, ctx);
     emit(CoinsReceivedEvent<Currency> { party_id, amount: coin.value(), coins: count });
@@ -147,7 +147,7 @@ public fun redeem_balance<Currency>(
     cap: &PartyAdminCap,
     value: u64,
 ): Balance<Currency> {
-    let party_id = self.id();
+    let party_id = object::id(self);
     let balance = hikida::redeem_balance<Currency>(self.uid_mut(cap), value);
     emit(FundsRedeemedEvent<Currency> { party_id, amount: balance.value() });
     balance
@@ -160,7 +160,7 @@ public fun redeem_coin<Currency>(
     value: u64,
     ctx: &mut TxContext,
 ): Coin<Currency> {
-    let party_id = self.id();
+    let party_id = object::id(self);
     let coin = hikida::redeem_coin<Currency>(self.uid_mut(cap), value, ctx);
     emit(FundsRedeemedEvent<Currency> { party_id, amount: coin.value() });
     coin
@@ -172,7 +172,7 @@ public fun redeem_coin<Currency>(
 /// the value a manifest records as a share or revenue recipient — naming it keeps
 /// callers from open-coding the conversion and wondering whether it is the right one.
 public fun inbox_address(self: &Party): address {
-    self.id().to_address()
+    object::id(self).to_address()
 }
 
 /// The party's accumulator balance in `Currency`, as settled at the start of the

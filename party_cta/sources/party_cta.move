@@ -95,7 +95,7 @@ public fun url(self: &Cta): String {
 /// Sets (or replaces) the party's ordered CTA list. Position is priority.
 public fun set_ctas(self: &mut Party, cap: &PartyAdminCap, ctas: vector<Cta>) {
     assert!(ctas.length() <= MAX_CTAS, ETooManyCtas);
-    let party_id = self.id();
+    let party_id = object::id(self);
     let count = ctas.length();
     let uid = self.uid_mut(cap);
     if (df::exists(uid, CtasKey())) {
@@ -108,7 +108,7 @@ public fun set_ctas(self: &mut Party, cap: &PartyAdminCap, ctas: vector<Cta>) {
 
 /// Removes the party's CTA list. No-op if none is set.
 public fun clear_ctas(self: &mut Party, cap: &PartyAdminCap) {
-    let party_id = self.id();
+    let party_id = object::id(self);
     let uid = self.uid_mut(cap);
     if (df::exists(uid, CtasKey())) {
         let _: vector<Cta> = df::remove(uid, CtasKey());

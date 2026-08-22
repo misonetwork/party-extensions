@@ -98,7 +98,7 @@ public fun set_profile(
     validate_optional(&bio_long, MAX_BIO_LONG_LENGTH, EEmptyBioLong, EBioLongTooLong);
     validate_languages(&languages);
 
-    let party_id = self.id();
+    let party_id = object::id(self);
     let profile = Profile { bio_short, bio_long, country, languages };
     let uid = self.uid_mut(cap);
     if (df::exists(uid, ProfileKey())) {
@@ -111,7 +111,7 @@ public fun set_profile(
 
 /// Removes the party's profile. No-op if none is set.
 public fun clear_profile(self: &mut Party, cap: &PartyAdminCap) {
-    let party_id = self.id();
+    let party_id = object::id(self);
     let uid = self.uid_mut(cap);
     if (df::exists(uid, ProfileKey())) {
         let Profile { .. } = df::remove(uid, ProfileKey());

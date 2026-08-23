@@ -75,9 +75,9 @@ surfaces from a dependency:
 
 - **The set stores ids, never names.** Resolve display names client-side from
   the `Genre` objects — they are frozen, so globally readable by reference.
-- **Ids are name-derived.** `genre::derive_genre_id(registry, name)` computes
-  the id a genre name would have without creating it, so clients can resolve
-  or check a genre id offline.
+- **Ids are name-derived.** `genre::derive_address(registry, name)` computes
+  the address a genre name would have without creating it, so clients can
+  resolve or check a genre id offline.
 - **Every stored id is proven.** Adds require the `&Genre` object, so nothing
   outside the vocabulary can ever enter the set — readers can trust that each
   id resolves to a real entry. The ids are the vocabulary's own, the same ones

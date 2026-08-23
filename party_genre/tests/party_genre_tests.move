@@ -24,7 +24,7 @@ const EUnauthorized: u64 = 0;
 fun create_genre(scenario: &Scenario, name: vector<u8>): ID {
     let cap = scenario.take_from_sender<GenreRegistryCap>();
     let mut registry = scenario.take_shared<GenreRegistry>();
-    let id = g::derive_genre_id(&registry, name.to_string());
+    let id = g::derive_address(&registry, name.to_string()).to_id();
     g::new(&cap, &mut registry, name.to_string());
     ts::return_shared(registry);
     scenario.return_to_sender(cap);
@@ -136,7 +136,7 @@ fun rejects_over_max() {
         let mut registry = scenario.take_shared<GenreRegistry>();
         (MAX_GENRES + 1).do!(|i| {
             let name = std::string::utf8(vector[((65 + i) as u8)]);
-            ids.push_back(g::derive_genre_id(&registry, name));
+            ids.push_back(g::derive_address(&registry, name).to_id());
             g::new(&cap, &mut registry, name);
         });
         ts::return_shared(registry);
@@ -183,7 +183,7 @@ fun add_genre_with_wrong_cap_on_full_set_aborts() {
         let mut registry = scenario.take_shared<GenreRegistry>();
         (MAX_GENRES + 1).do!(|i| {
             let name = std::string::utf8(vector[((65 + i) as u8)]);
-            ids.push_back(g::derive_genre_id(&registry, name));
+            ids.push_back(g::derive_address(&registry, name).to_id());
             g::new(&cap, &mut registry, name);
         });
         ts::return_shared(registry);

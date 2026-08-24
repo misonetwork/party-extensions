@@ -5,14 +5,14 @@
 module party_genre::party_genre_tests;
 
 use genre::genre as g;
-use genre::genre::{GenreRegistry, GenreRegistryCap, Genre};
+use genre::genre::{GenreRegistry, Genre};
 use miso_party::party;
 // Aliased so the bare `party_genre` name stays free for `location = …`.
 use party_genre::party_genre as pg;
 use std::unit_test::{assert_eq, destroy};
 use sui::test_scenario::{Self as ts, Scenario};
 
-const CURATOR: address = @0xC0;
+const CREATOR: address = @0xC0;
 const MAX_GENRES: u64 = 20;
 
 // Mirrors `party::EUnauthorized` (party.move) for the wrong-cap abort test.
@@ -20,14 +20,12 @@ const EUnauthorized: u64 = 0;
 
 // === Helpers ===
 
-/// Creates a genre in the registry (cap-gated) and returns its derived id.
+/// Creates a genre in the permissionless registry and returns its derived id.
 fun create_genre(scenario: &Scenario, name: vector<u8>): ID {
-    let cap = scenario.take_from_sender<GenreRegistryCap>();
     let mut registry = scenario.take_shared<GenreRegistry>();
     let id = g::derive_address(&registry, name.to_string()).to_id();
-    g::new(&cap, &mut registry, name.to_string());
+    g::new(&mut registry, name.to_string());
     ts::return_shared(registry);
-    scenario.return_to_sender(cap);
     id
 }
 
@@ -52,15 +50,15 @@ fun fresh_id(ctx: &mut TxContext): ID {
 
 #[test]
 fun add_remove_and_query() {
-    let mut scenario = ts::begin(CURATOR);
+    let mut scenario = ts::begin(CREATOR);
     g::init_for_testing(scenario.ctx());
 
-    scenario.next_tx(CURATOR);
+    scenario.next_tx(CREATOR);
     let id1 = create_genre(&scenario, b"HIP_HOP");
-    scenario.next_tx(CURATOR);
+    scenario.next_tx(CREATOR);
     let id2 = create_genre(&scenario, b"AMBIENT");
 
-    scenario.next_tx(CURATOR);
+    scenario.next_tx(CREATOR);
     let genre1 = scenario.take_immutable_by_id<Genre>(id1);
     let genre2 = scenario.take_immutable_by_id<Genre>(id2);
     let (mut p, cap) = new_party(scenario.ctx());
@@ -95,12 +93,12 @@ fun add_remove_and_query() {
 
 #[test, expected_failure(abort_code = 0, location = typed_set::typed_set)] // EDuplicateItem
 fun rejects_duplicate() {
-    let mut scenario = ts::begin(CURATOR);
+    let mut scenario = ts::begin(CREATOR);
     g::init_for_testing(scenario.ctx());
-    scenario.next_tx(CURATOR);
+    scenario.next_tx(CREATOR);
     let id = create_genre(&scenario, b"HIP_HOP");
 
-    scenario.next_tx(CURATOR);
+    scenario.next_tx(CREATOR);
     let genre = scenario.take_immutable_by_id<Genre>(id);
     let (mut p, cap) = new_party(scenario.ctx());
     pg::add_genre(&mut p, &cap, &genre);
@@ -110,12 +108,12 @@ fun rejects_duplicate() {
 
 #[test, expected_failure(abort_code = 1, location = typed_set::typed_set)] // EItemNotPresent
 fun remove_absent_aborts() {
-    let mut scenario = ts::begin(CURATOR);
+    let mut scenario = ts::begin(CREATOR);
     g::init_for_testing(scenario.ctx());
-    scenario.next_tx(CURATOR);
+    scenario.next_tx(CREATOR);
     let id = create_genre(&scenario, b"HIP_HOP");
 
-    scenario.next_tx(CURATOR);
+    scenario.next_tx(CREATOR);
     let genre = scenario.take_immutable_by_id<Genre>(id);
     let (mut p, cap) = new_party(scenario.ctx());
     pg::add_genre(&mut p, &cap, &genre);
@@ -125,25 +123,23 @@ fun remove_absent_aborts() {
 
 #[test, expected_failure(abort_code = 2, location = typed_set::typed_set)] // EMaxItemsExceeded
 fun rejects_over_max() {
-    let mut scenario = ts::begin(CURATOR);
+    let mut scenario = ts::begin(CREATOR);
     g::init_for_testing(scenario.ctx());
 
     // Mint MAX_GENRES + 1 distinct genres (single-letter names A, B, …).
-    scenario.next_tx(CURATOR);
+    scenario.next_tx(CREATOR);
     let mut ids = vector[];
     {
-        let cap = scenario.take_from_sender<GenreRegistryCap>();
         let mut registry = scenario.take_shared<GenreRegistry>();
         (MAX_GENRES + 1).do!(|i| {
             let name = std::string::utf8(vector[((65 + i) as u8)]);
             ids.push_back(g::derive_address(&registry, name).to_id());
-            g::new(&cap, &mut registry, name);
+            g::new(&mut registry, name);
         });
         ts::return_shared(registry);
-        scenario.return_to_sender(cap);
     };
 
-    scenario.next_tx(CURATOR);
+    scenario.next_tx(CREATOR);
     let (mut p, cap) = new_party(scenario.ctx());
     ids.do_ref!(|id| {
         let genre = scenario.take_immutable_by_id<Genre>(*id);
@@ -155,12 +151,12 @@ fun rejects_over_max() {
 
 #[test, expected_failure(abort_code = EUnauthorized, location = miso_party::party)]
 fun add_genre_with_wrong_cap_aborts() {
-    let mut scenario = ts::begin(CURATOR);
+    let mut scenario = ts::begin(CREATOR);
     g::init_for_testing(scenario.ctx());
-    scenario.next_tx(CURATOR);
+    scenario.next_tx(CREATOR);
     let id = create_genre(&scenario, b"HIP_HOP");
 
-    scenario.next_tx(CURATOR);
+    scenario.next_tx(CREATOR);
     let genre = scenario.take_immutable_by_id<Genre>(id);
     let (mut p, _cap) = new_party(scenario.ctx());
     let (_other, other_cap) = new_party(scenario.ctx());
@@ -172,25 +168,23 @@ fun add_genre_with_wrong_cap_aborts() {
 
 #[test, expected_failure(abort_code = EUnauthorized, location = miso_party::party)]
 fun add_genre_with_wrong_cap_on_full_set_aborts() {
-    let mut scenario = ts::begin(CURATOR);
+    let mut scenario = ts::begin(CREATOR);
     g::init_for_testing(scenario.ctx());
 
     // Mint MAX_GENRES + 1 distinct genres (single-letter names A, B, …).
-    scenario.next_tx(CURATOR);
+    scenario.next_tx(CREATOR);
     let mut ids = vector[];
     {
-        let cap = scenario.take_from_sender<GenreRegistryCap>();
         let mut registry = scenario.take_shared<GenreRegistry>();
         (MAX_GENRES + 1).do!(|i| {
             let name = std::string::utf8(vector[((65 + i) as u8)]);
             ids.push_back(g::derive_address(&registry, name).to_id());
-            g::new(&cap, &mut registry, name);
+            g::new(&mut registry, name);
         });
         ts::return_shared(registry);
-        scenario.return_to_sender(cap);
     };
 
-    scenario.next_tx(CURATOR);
+    scenario.next_tx(CREATOR);
     let (mut p, cap) = new_party(scenario.ctx());
     let (_other, other_cap) = new_party(scenario.ctx());
 

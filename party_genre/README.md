@@ -69,7 +69,8 @@ surfaces from a dependency:
 - `typed_set` (local, `lib/typed_set`) — bounded-set mechanics: storage,
   duplicate and capacity checks, field reclamation.
 - `genre` (git, pinned by SHA) — the shared Miso genre vocabulary: canonical,
-  name-derived, frozen `Genre` objects minted under a `GenreRegistryCap`.
+  name-derived, frozen `Genre` objects created permissionlessly under a shared
+  registry.
 
 ## Integrator notes
 

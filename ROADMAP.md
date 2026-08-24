@@ -74,7 +74,9 @@ matrix, and prioritized calls-to-action.
 
 ## Phase 2 — Miso-native differentiators, trust & conversion
 
-The pieces a normal link hub can't have.
+The pieces a normal link hub can't have. The earlier Pressing-specific featured
+pointer was retired; its replacement is the generalized, protocol-agnostic
+design below.
 
 | Package | Owns | Notes |
 |---|---|---|

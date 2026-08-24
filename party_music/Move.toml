@@ -5,4 +5,4 @@ license = "Apache 2.0"
 authors = ["Miso Labs, Inc. (build@miso.network)"]
 
 [dependencies]
-platform_link = { local = "../lib/platform_link" }
+platform_link = { git = "https://github.com/misonetwork/party-extensions.git", subdir = "lib/platform_link", rev = "4873c4a9dfcbe5077ac6e6023fa3cc09850625f7" }

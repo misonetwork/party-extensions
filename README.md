@@ -3,7 +3,7 @@
 Artist/entity profile pages on Sui, built as small, independent Move packages.
 Each **extension** attaches one coherent slice of a profile to a core
 [`miso_party::party::Party`](../miso-party) object as a dynamic field — bio,
-roles, tags, links, imagery, CTAs, and a featured pressing. Extensions ship,
+roles, tags, links, imagery, and CTAs. Extensions ship,
 upgrade, and evolve independently: Move cannot add
 fields to a published struct without a migration, so many small extensions
 beat one mega-struct.
@@ -52,7 +52,6 @@ for documenting an extension — required reading before adding one — lives in
 | [`party_tags`](party_tags) | Free-form tag set (moods, scenes, descriptors) |
 | [`party_media`](party_media) | Imagery: one Walrus quilt blob id (avatar/header are quilt patches, a client convention) |
 | [`party_cta`](party_cta) | Ordered external call-to-action links (`{ label, url }`, position is priority) |
-| [`party_featured_pressing`](party_featured_pressing) | The featured `Pressing` pin — proven against the live protocol object |
 
 Operational Party workflows are not profile extensions. Vault-authorized inbox
 and accumulator withdrawals live in
@@ -63,8 +62,8 @@ and accumulator withdrawals live in
 - **Events are change signals.** Dynamic-field mutations are not observable
   off-chain, so every write emits an event carrying `party_id`. Payloads are
   not re-included — an indexer re-reads the field — except small, stable ones
-  (ids and short display strings: `party_media`'s quilt id,
-  `party_featured_pressing`'s pressing id, role/tag strings), which ride in.
+  (ids and short display strings: `party_media`'s quilt id and role/tag
+  strings), which ride in.
 - **Validation is split on purpose.** Primitives enforce set mechanics
   (duplicate / not-present / over-max — aborts come from `typed_set` or
   `platform_link` with their codes). Extensions enforce domain rules
@@ -89,7 +88,3 @@ Each package is independent. From a package directory:
 sui move build
 sui move test
 ```
-
-`party_featured_pressing` additionally requires the `miso-pressing`, `miso-protocol`,
-and `miso-record` sibling checkouts (its protocol dependency uses cross-repo
-local paths).

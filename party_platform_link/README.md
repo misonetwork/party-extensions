@@ -62,7 +62,7 @@ with `EUnauthorized` at `miso_party::party`.
 The phantom `Data` type parameter is the signal: it names the platform that
 changed. By convention no stored data rides in the event — the indexer
 re-reads the field. (Small, stable pointers are the documented exception
-elsewhere: `party_media`'s quilt id, `party_featured_drop`'s drop id.)
+elsewhere: `party_media`'s quilt id or a role or tag string.)
 
 ## Errors
 

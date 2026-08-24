@@ -9,3 +9,4 @@ node_modules/
 package_summaries/
 .coverage_map.mvcov
 traces/
+party_*/Move.lock

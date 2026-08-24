@@ -25,7 +25,7 @@ and [README.md](README.md) for the architecture and package overview.
    `Data` payload type in the appropriate payload package (`party_social`,
    `party_music`, `party_pro_link`), wired by `party_platform_link` — zero new
    mechanism. Only write raw `df::add`/`borrow`/`remove` when no primitive
-   fits (single-value fields like `party_media`, `party_featured_drop`).
+   fits (single-value fields like `party_media` and `party_profile`).
 3. **Keep it slim.** One slice, one key, the smallest API that covers the
    feature. No speculative configurability, no helper functions with one call
    site, no unused public surface.
@@ -40,8 +40,8 @@ and [README.md](README.md) for the architecture and package overview.
 6. **Pin git dependencies to a commit SHA** — never `rev = "main"`.
 7. **Emit an event per write**, carrying `party_id`. Events are change
    signals: payloads are not re-included, except small, stable ones (ids and
-   short display strings — `party_media`'s quilt id, `party_featured_drop`'s
-   pressing id, a role or tag string), which ride in.
+   short display strings — `party_media`'s quilt id or a role or tag string),
+   which ride in.
 8. **Tests:** happy path, each validation abort, and always a wrong-cap test
    (`expected_failure(abort_code = EUnauthorized, location = miso_party::party)`
    — mirror the constant locally). Set-mechanics aborts assert `typed_set`'s

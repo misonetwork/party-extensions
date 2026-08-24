@@ -3,8 +3,8 @@
 Artist/entity profile pages on Sui, built as small, independent Move packages.
 Each **extension** attaches one coherent slice of a profile to a core
 [`miso_party::party::Party`](../miso-party) object as a dynamic field — bio,
-roles, tags, links, imagery, CTAs, a featured pressing, and the party's wallet
-door. Extensions ship, upgrade, and evolve independently: Move cannot add
+roles, tags, links, imagery, CTAs, and a featured pressing. Extensions ship,
+upgrade, and evolve independently: Move cannot add
 fields to a published struct without a migration, so many small extensions
 beat one mega-struct.
 
@@ -53,7 +53,10 @@ for documenting an extension — required reading before adding one — lives in
 | [`party_media`](party_media) | Imagery: one Walrus quilt blob id (avatar/header are quilt patches, a client convention) |
 | [`party_cta`](party_cta) | Ordered external call-to-action links (`{ label, url }`, position is priority) |
 | [`party_featured_pressing`](party_featured_pressing) | The featured `Pressing` pin — proven against the live protocol object |
-| [`party_wallet`](party_wallet) | The party's inbox door: receive transfer-to-object sends, redeem accumulator funds |
+
+Operational Party workflows are not profile extensions. Vault-authorized inbox
+and accumulator withdrawals live in
+[`misofm/vault-plugins/party_wallet`](https://github.com/misofm/vault-plugins/tree/main/party_wallet).
 
 ## Conventions
 

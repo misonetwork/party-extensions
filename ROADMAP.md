@@ -107,5 +107,7 @@ The pieces a normal link hub can't have.
 - **Off-chain / indexer:** page theme/accent/layout/section order, hide-show
   toggles, featured-media order, profile completeness score, last-updated,
   moderation status, "verified-links-only" (derived from verification stamps).
+- **Vault-authorized operations:** Party inbox receipt and accumulator withdrawal
+  live in `misofm/vault-plugins/party_wallet`; they store no profile data.
 - **Never raw on-chain (PII/payment):** booking/press/sync emails, phone, fees,
   payout/wallet addresses, private management contacts.

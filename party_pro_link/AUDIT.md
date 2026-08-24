@@ -41,6 +41,8 @@ None.
   lookalike/phishing destinations. Frontends MUST render these as untrusted
   external links (no auto-redirect, clear external-link affordance). This is
   self-sovereign data; the chain's job — bounds and authorization — is done.
+  **Disposition (2026-08-24):** accepted — self-sovereign data on one's own
+  party; untrusted-rendering is a documented frontend obligation.
 
 ## Edge cases (verified)
 

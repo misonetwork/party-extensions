@@ -1,56 +1,47 @@
-# Security Audit — `platform_link` (lib primitive)
+# Release Audit — `platform_link`
 
-**Revision:** not a git repository (working tree as of audit date) · **Date:** 2026-08-23 ·
-**Toolchain:** sui 1.77.2
+**Repository:** `https://github.com/misonetwork/party-extensions`
+**Audit target:** pending working-tree source based on `6bd663033267b7c2fddb7ed8b9ce85f980121e2f`
+**Date:** 2026-09-02
+**Toolchain:** `sui 1.78.1-722ac4fcf484`
 
-Audit of `platform_link`, the protocol-agnostic primitive that stores exactly
-one `PlatformLink<Data>` per `Data` type as a dynamic field on any object's
-UID. Verdict: **safe — no findings.**
+## Verdict
 
-## What it does
+Release-ready. No security or correctness findings remain.
 
-A generic typed wrapper (`PlatformLink<Data>`, `platform_link.move:53`) plus
-UID storage keyed by `PlatformLinkKey<phantom Data>` (`:59`):
-`set` (replace-in-place), `get`/`borrow`, `remove`, `clear`, and the shared
-length backstops (`max_identifier_length = 256`, `max_url_length = 2000`,
-`:43-47`) every payload package reuses. It holds no state of its own, gates
-nothing (authorization is the caller's — e.g. `party::uid_mut(cap)`), and
-touches no funds.
+## Implementation reviewed
 
-Threat model: key-type confusion between platforms or between packages;
-storage bloat; a caller reading a field that isn't what its type claims.
+`platform_link` is a protocol-agnostic primitive. It wraps a payload as
+`PlatformLink<Data>` and stores at most one value per `Data` type under any
+caller-supplied `UID`, using the phantom-typed `PlatformLinkKey<Data>`. It
+implements set/replace, optional read, borrow, remove, and idempotent clear. It
+contains no Party, capability, event, Vault, Action, plugin, or fund logic;
+authorization belongs to its caller. Identifier and URL backstops are exactly
+256 and 2000 bytes.
 
-## Checks performed (all hold)
+## Dependency provenance
 
-- **Key isolation is type-level.** `PlatformLinkKey<Data>()` carries the
-  payload type as a phantom parameter, so `PlatformLinkKey<XData>` and
-  `PlatformLinkKey<SpotifyData>` are distinct df keys on the same UID
-  (`:57-59`). The key's constructor is module-private (struct literals are
-  only buildable in this module), so NO other package can name, read over,
-  or delete this namespace.
-- **Key/value type consistency.** Only this module writes under
-  `PlatformLinkKey<Data>`, always with a `PlatformLink<Data>` value
-  (`set`, `:85-91`). The replace path's typed `df::borrow_mut` would abort on
-  any type mismatch, and none is reachable.
-- **`remove`/`borrow` abort on absence** (`ENoLink`, `:103-112`);
-  `clear` is a deliberate no-op when absent (`:115-118`).
-- **No abilities to abuse.** `PlatformLink` is `copy + drop + store` — a
-  plain data value, not a capability; copying it confers nothing.
-
-## Findings
-
-None.
-
-## Edge cases (verified)
-
-- Set-over-set — replace in place, key count stays 1 per Data type.
-- Clear-when-absent — no-op, no abort.
-- Platform addition — new `Data` type, zero changes here (the design goal).
-- Shared limits are functions (no `public const` on this toolchain), so
-  dependents cannot drift from these numbers.
+The manifest has no explicit dependency. `Move.lock` resolves the Sui
+framework for both Testnet and Mainnet at exact revision
+`2a0becb2fcc6989e492981104af67f62f2c9511a`. There are no local-path, branch,
+or floating Git dependencies.
 
 ## Verification
 
-Unit tests in `tests/platform_link_tests.move`. All ten consuming packages in
-`party-extensions` re-read for this audit: each passes a cap-gated
-`&mut UID` and only after authorization.
+- Package tests: **5/5**, including **2** expected-failure paths (`borrow` and
+  `remove` when absent).
+- Production instruction coverage: **100.00%**.
+- Shared-Party workflow: not applicable; this primitive accepts a `UID` and
+  owns no host object.
+- Repository aggregate: **77/77 tests on Testnet and 77/77 on Mainnet**, strict
+  lint with warnings as errors; all 11 production modules are at **100.00%**.
+- Fresh copies without `Published.toml` or `Move.lock` build strictly for both
+  networks.
+
+## Published metadata
+
+The retained `Published.toml` records prior immutable Testnet package
+`0x24f10661c815b9d6b8e6a94d7b1b38d53df848735863430d458af5d5481b27c5`.
+It is historical deployment metadata and does not attest to pending source.
+Fresh immutable publication uses the admin CLI with `--allow-republish`; only
+after confirmed success may it replace the target network block.

@@ -1,55 +1,46 @@
-# Security Audit — `party_tags`
+# Release Audit — `party_tags`
 
-**Revision:** not a git repository (working tree as of audit date) · **Date:** 2026-08-23 ·
-**Toolchain:** sui 1.77.2
+**Repository:** `https://github.com/misonetwork/party-extensions`
+**Audit target:** pending working-tree source based on `6bd663033267b7c2fddb7ed8b9ce85f980121e2f`
+**Date:** 2026-09-02
+**Toolchain:** `sui 1.78.1-722ac4fcf484`
 
-Audit of `party_tags`, free-form tags for a party: a bounded
-`VecSet<String>` managed through `typed_set`. Verdict: **safe — no
-findings.**
+## Verdict
 
-## What it does
+Release-ready. No security or correctness findings remain.
 
-- `add_tag` (`party_tags.move:65`) — cap-gated; tag validated non-empty and
-  ≤ 50 bytes HERE, then set mechanics (duplicate/capacity) in `typed_set`;
-  capacity 30.
-- `remove_tag` / `clear_tags` (`:76`, `:83`) — cap-gated.
-- Views (`:95-106`) — permissionless.
+## Implementation reviewed
 
-Threat model: unauthorized tag mutation; unbounded growth; oversized tags.
+`party_tags` is a state-attaching extension. It stores up to 30 exact-match
+free-form strings through `typed_set`, with each tag constrained to 1–50 bytes.
+All mutations require the matching `PartyAdminCap`; final removal reclaims the
+field, clear is idempotent, and views are permissionless. Normalization and
+rendering safety remain client concerns.
 
-## Checks performed (all hold)
+## Exact manifest pins
 
-- **Authorization.** All three writes call `self.uid_mut(cap)` →
-  `party::authorize` (`miso_party` pinned, `party.move:519-522`) before any
-  mutation or event. Wrong-cap test present. (In `add_tag` tag validation
-  runs before the cap gate — both paths abort; cosmetic ordering only.)
-- **Bounded.** 30 tags × ≤ 50 bytes — hard ceiling.
-- **Set mechanics** — pinned `typed_set` (rev `a63230bb`): duplicate abort,
-  capacity check, field reclaimed when the last tag leaves
-  (`typed_set.move:37-75`).
-- **Key isolation.** `TagsKey()` (`:40`) module-private; single writer
-  module; stored value always `VecSet<String>`.
-- **Exact-match dedupe, no normalization** (`:12-14`): "Ambient" and
-  "ambient" are distinct tags by design; normalization for search/display is
-  a client concern. Not a security gap — tags are self-sovereign
-  presentation data on one's own party.
+| Dependency | Repository | Revision |
+|---|---|---|
+| `miso_party` | `https://github.com/misonetwork/party.git` | `ffb2915b9bb1802b4c160d3230c560e40bd2b063` |
+| `typed_set` | `https://github.com/unconfirmedlabs/typed_set.git` | `b37474cbde166b7ddf8a3b615cd89f90182ace6f` |
 
-## Findings
-
-None.
-
-## Edge cases (verified)
-
-- Empty / 51-byte tag — aborts (`EEmptyTag` / `ETagTooLong`).
-- Duplicate add — aborts `typed_set::EDuplicateItem` (location-pinned).
-- 31st tag — `EMaxItemsExceeded`.
-- Remove absent — `EItemNotPresent`; last removal drops the field, so
-  `has_tags` reads false (`:73-75`).
-- Clear when unset — no-op, no event.
-- Multi-byte UTF-8 — the 50-byte bound is on BYTES (`String::length`), so a
-  tag of multi-byte characters is correctly bounded by storage size.
+The manifest has no local-path or floating dependencies.
 
 ## Verification
 
-Tests in `tests/party_tags_tests.move`: 6 `expected_failure` cases including
-wrong-cap and typed_set aborts at `location = typed_set::typed_set`.
+- Package tests: **9/9**, including **7** expected-failure paths covering both
+  tag validators, duplicate, missing item, capacity, wrong cap, and
+  authorization-before-capacity.
+- Production instruction coverage: **100.00%**.
+- End-to-end scenario covers Party share, cap transfer, later tag write, and
+  permissionless read from the shared Party.
+- Repository aggregate: **77/77 tests on Testnet and 77/77 on Mainnet**, strict
+  lint with warnings as errors; all 11 production modules are at **100.00%**.
+
+## Published metadata
+
+The retained `Published.toml` records prior immutable Testnet package
+`0x1807589b09b4048aca2b52fd7dbd19bd90c3a1b00b2e7af928346aae295721c9`.
+It is prior-generation metadata wherever pending inputs differ. Fresh immutable
+publication uses the admin CLI with `--allow-republish`; only after confirmed
+success may it replace the target network block.

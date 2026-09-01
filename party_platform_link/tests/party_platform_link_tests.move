@@ -8,9 +8,11 @@ use miso_party::party;
 use party_platform_link::party_platform_link as links;
 use party_social::party_social::{Self as social, XData, InstagramData};
 use std::unit_test::{assert_eq, destroy};
+use sui::test_scenario::{Self as ts};
 
 // Mirrors `party::EUnauthorized` (party.move) for the wrong-cap abort test.
 const EUnauthorized: u64 = 0;
+const OWNER: address = @0xA;
 
 fun new_party(ctx: &mut TxContext): (party::Party, party::PartyAdminCap) {
     {
@@ -73,6 +75,30 @@ fun set_link_replaces_existing() {
 
     destroy(p);
     destroy(cap);
+}
+
+#[test]
+fun shared_party_platform_link_workflow() {
+    let mut scenario = ts::begin(OWNER);
+    let (p, cap) = new_party(scenario.ctx());
+    party::share(p, &cap);
+    transfer::public_transfer(cap, OWNER);
+
+    scenario.next_tx(OWNER);
+    let mut p = scenario.take_shared<party::Party>();
+    let cap = scenario.take_from_sender<party::PartyAdminCap>();
+    links::set_link(&mut p, &cap, social::x(b"miso".to_string()));
+    ts::return_shared(p);
+    scenario.return_to_sender(cap);
+
+    scenario.next_tx(@0xB);
+    let p = scenario.take_shared<party::Party>();
+    assert_eq!(
+        links::link<XData>(&p).destroy_some().data().handle(),
+        b"miso".to_string(),
+    );
+    ts::return_shared(p);
+    scenario.end();
 }
 
 // `clear_link` must reject a wrong cap even when no link is present — the cap is

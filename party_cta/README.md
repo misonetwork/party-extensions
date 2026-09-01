@@ -78,9 +78,12 @@ A wrong `PartyAdminCap` aborts with `EUnauthorized` (0) at
 
 ## Dependencies
 
-- `miso_party` (local) — the `Party` / `PartyAdminCap` authorization core.
+- [`miso_party`](https://github.com/misonetwork/party) at exact revision
+  `ffb2915b9bb1802b4c160d3230c560e40bd2b063` — the `Party` /
+  `PartyAdminCap` authorization core.
 - Nothing else beyond the Sui framework (`sui::dynamic_field`, `sui::event`,
-  `std::string`) — no primitive or protocol dependencies, by design.
+  `std::string`) — no primitive or protocol dependencies, by design. The
+  manifest has no local-path or floating dependencies.
 
 ## Integrator notes
 

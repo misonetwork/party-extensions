@@ -1,59 +1,45 @@
-# Security Audit — `party_cta`
+# Release Audit — `party_cta`
 
-**Revision:** not a git repository (working tree as of audit date) · **Date:** 2026-08-23 ·
-**Toolchain:** sui 1.77.2
+**Repository:** `https://github.com/misonetwork/party-extensions`
+**Audit target:** pending working-tree source based on `6bd663033267b7c2fddb7ed8b9ce85f980121e2f`
+**Date:** 2026-09-02
+**Toolchain:** `sui 1.78.1-722ac4fcf484`
 
-Audit of `party_cta`, the off-Miso call-to-action list for a party — an
-ordered `vector<Cta>` (`{label, url}`) stored as one dynamic field, replaced
-whole on each save. Verdict: **safe — no findings.**
+## Verdict
 
-## What it does
+Release-ready. No security or correctness findings remain.
 
-- `new_cta` (`party_cta.move:75`) — validated constructor: non-empty label ≤
-  60 bytes, non-empty url ≤ 2000 bytes. `Cta` fields are private and
-  construction is module-private, so no unvalidated `Cta` can exist.
-- `set_ctas` (`:96`) — cap-gated whole-list replace, ≤ 20 entries.
-- `clear_ctas` (`:110`) — cap-gated removal; no-op if unset.
-- Views (`:122-130`) — permissionless.
+## Implementation reviewed
 
-Threat model: unauthorized write/clear of a party's CTAs; unbounded storage;
-malformed entries reaching renderers.
+`party_cta` is a state-attaching extension. It stores one ordered,
+replace-whole `vector<Cta>` dynamic field on a Party. Labels are 1–60 bytes,
+URLs are 1–2000 bytes, and the list is capped at 20. `set_ctas` and
+`clear_ctas` require the matching `PartyAdminCap`; views are permissionless.
+The module emits change events and contains no funds or automation entrypoints.
 
-## Checks performed (all hold)
+## Exact manifest pins
 
-- **Authorization.** Both writes call `self.uid_mut(cap)` →
-  `party::authorize` asserts `cap.party_id == object::id(party)` (pinned
-  `miso_party`, `party.move:519-522`). The wrong-cap test covers it.
-- **Bounded storage.** `MAX_CTAS = 20` × (60 + 2000) bytes max — a hard
-  ceiling on the df's size (`:39-43`, `:97`).
-- **Validation cannot be bypassed.** The only `Cta` constructor validates;
-  the vector is validated at the boundary (`set_ctas` count check) and every
-  element was built through `new_cta`.
-- **Key isolation.** `CtasKey()` (`:48`) is module-private-constructible;
-  no other package can touch this field.
-- **Ordering note (not a finding).** In `set_ctas` the count assert (`:97`)
-  runs before the cap gate (`:100`), so a wrong-cap call with an oversized
-  list aborts `ETooManyCtas` rather than `EUnauthorized`. Both abort; nothing
-  is revealed or mutated. (Contrast `party_platform_link::clear_link`, which
-  deliberately gates first.)
+| Dependency | Repository | Revision |
+|---|---|---|
+| `miso_party` | `https://github.com/misonetwork/party.git` | `ffb2915b9bb1802b4c160d3230c560e40bd2b063` |
 
-## Findings
-
-None.
-
-## Edge cases (verified)
-
-- Empty/oversized label or url — aborts in `new_cta`.
-- 21+ CTAs — `ETooManyCtas`.
-- Replace-existing vs first-write — both paths handled (`:101-105`).
-- Clear when unset — no-op, no event.
-- URLs are untrusted external input — a client concern (integrator note, not
-  a chain issue): renderers must sanitize, since a party admin can point a
-  CTA anywhere, including phishing lookalikes, on their OWN party.
+The manifest has no local-path or floating dependencies.
 
 ## Verification
 
-Tests in `tests/party_cta_tests.move`: 4 `expected_failure` cases including
-wrong-cap (`EUnauthorized` at `miso_party::party`). Deliberately does NOT
-depend on `platform_link` (per repo convention); limits match the shared
-backstops (2000-byte url) by coincidence of policy, verified equal here.
+- Package tests: **8/8**, including **6** expected-failure paths covering all
+  four CTA validators, list capacity, and wrong-cap authorization.
+- Production instruction coverage: **100.00%**.
+- End-to-end scenario: Party creation and share, cap transfer, later cap-gated
+  write to the shared Party, and permissionless read in another transaction.
+- Repository aggregate: **77/77 tests on Testnet and 77/77 on Mainnet**, strict
+  lint with warnings as errors; all 11 production modules are at **100.00%**.
+- Fresh unpublished copies build strictly for both networks.
+
+## Published metadata
+
+The retained `Published.toml` records prior immutable Testnet package
+`0xf385934b1291d262048712c09f6ed1745487f4795e2d87be9c7520a72c0fbde3`.
+It predates pending source wherever inputs differ. Fresh immutable publication
+uses the admin CLI with `--allow-republish`; only a confirmed successful
+transaction may replace the target network block.

@@ -11,6 +11,8 @@ use std::unit_test::assert_eq;
 fun url_based_constructors() {
     assert_eq!(pro::website(b"https://miso.network".to_string()).data().url(), b"https://miso.network".to_string());
     assert_eq!(pro::booking_page(b"https://book.example".to_string()).data().url(), b"https://book.example".to_string());
+    assert_eq!(pro::management_page(b"https://management.example".to_string()).data().url(), b"https://management.example".to_string());
+    assert_eq!(pro::publisher_page(b"https://publisher.example".to_string()).data().url(), b"https://publisher.example".to_string());
     assert_eq!(pro::epk(b"https://epk.example".to_string()).data().url(), b"https://epk.example".to_string());
     assert_eq!(pro::label_page(b"https://label.example".to_string()).data().url(), b"https://label.example".to_string());
 }

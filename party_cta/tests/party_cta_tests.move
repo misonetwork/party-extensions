@@ -7,9 +7,11 @@ module party_cta::party_cta_tests;
 use miso_party::party;
 use party_cta::party_cta as cta;
 use std::unit_test::{assert_eq, destroy};
+use sui::test_scenario::{Self as ts};
 
 // Mirrors `party::EUnauthorized` (party.move) for the wrong-cap abort test.
 const EUnauthorized: u64 = 0;
+const OWNER: address = @0xA;
 
 fun new_party(ctx: &mut TxContext): (party::Party, party::PartyAdminCap) {
     {
@@ -56,6 +58,29 @@ fun set_read_replace_clear() {
     destroy(cap);
 }
 
+#[test]
+fun shared_party_cta_workflow() {
+    let mut scenario = ts::begin(OWNER);
+    let (p, cap) = new_party(scenario.ctx());
+    party::share(p, &cap);
+    transfer::public_transfer(cap, OWNER);
+
+    scenario.next_tx(OWNER);
+    let mut p = scenario.take_shared<party::Party>();
+    let cap = scenario.take_from_sender<party::PartyAdminCap>();
+    cta::set_ctas(&mut p, &cap, vector[
+        cta::new_cta(b"Tickets".to_string(), b"https://tickets.example".to_string()),
+    ]);
+    ts::return_shared(p);
+    scenario.return_to_sender(cap);
+
+    scenario.next_tx(@0xB);
+    let p = scenario.take_shared<party::Party>();
+    assert_eq!(cta::ctas(&p)[0].label(), b"Tickets".to_string());
+    ts::return_shared(p);
+    scenario.end();
+}
+
 #[test, expected_failure(abort_code = 0, location = party_cta::party_cta)] // EEmptyLabel
 fun rejects_empty_label() {
     let _ = cta::new_cta(b"".to_string(), b"https://x.com".to_string());
@@ -65,6 +90,20 @@ fun rejects_empty_label() {
 #[test, expected_failure(abort_code = 2, location = party_cta::party_cta)] // EEmptyUrl
 fun rejects_empty_url() {
     let _ = cta::new_cta(b"Listen".to_string(), b"".to_string());
+    abort
+}
+
+#[test, expected_failure(abort_code = 1, location = party_cta::party_cta)] // ELabelTooLong
+fun rejects_overlong_label() {
+    let label = vector::tabulate!(61, |_| 97u8).to_string();
+    let _ = cta::new_cta(label, b"https://x.com".to_string());
+    abort
+}
+
+#[test, expected_failure(abort_code = 3, location = party_cta::party_cta)] // EUrlTooLong
+fun rejects_overlong_url() {
+    let url = vector::tabulate!(2001, |_| 97u8).to_string();
+    let _ = cta::new_cta(b"Listen".to_string(), url);
     abort
 }
 

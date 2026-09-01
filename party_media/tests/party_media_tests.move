@@ -7,9 +7,11 @@ module party_media::party_media_tests;
 use miso_party::party;
 use party_media::party_media as media;
 use std::unit_test::{assert_eq, destroy};
+use sui::test_scenario::{Self as ts};
 
 // Mirrors `party::EUnauthorized` (party.move) for the wrong-cap abort test.
 const EUnauthorized: u64 = 0;
+const OWNER: address = @0xA;
 
 fun new_party(ctx: &mut TxContext): (party::Party, party::PartyAdminCap) {
     let clock = sui::clock::create_for_testing(ctx);
@@ -52,6 +54,27 @@ fun set_media_replaces_quilt() {
 
     destroy(p);
     destroy(cap);
+}
+
+#[test]
+fun shared_party_media_workflow() {
+    let mut scenario = ts::begin(OWNER);
+    let (p, cap) = new_party(scenario.ctx());
+    party::share(p, &cap);
+    transfer::public_transfer(cap, OWNER);
+
+    scenario.next_tx(OWNER);
+    let mut p = scenario.take_shared<party::Party>();
+    let cap = scenario.take_from_sender<party::PartyAdminCap>();
+    media::set_media(&mut p, &cap, 0xCAFEu256);
+    ts::return_shared(p);
+    scenario.return_to_sender(cap);
+
+    scenario.next_tx(@0xB);
+    let p = scenario.take_shared<party::Party>();
+    assert_eq!(media::quilt(&p).destroy_some(), 0xCAFEu256);
+    ts::return_shared(p);
+    scenario.end();
 }
 
 #[test, expected_failure(abort_code = 0, location = party_media::party_media)] // EZeroQuilt

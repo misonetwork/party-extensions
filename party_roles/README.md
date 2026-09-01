@@ -77,10 +77,14 @@ Set-mechanics aborts surface from the primitive, at `typed_set::typed_set`:
 
 ## Dependencies
 
-- `miso_party` (local) — the `Party` / `PartyAdminCap` authorization core;
+- [`miso_party`](https://github.com/misonetwork/party) at
+  `ffb2915b9bb1802b4c160d3230c560e40bd2b063` — the authorization core;
   every write goes through `party::uid_mut(cap)`.
-- `typed_set` (local, `lib/typed_set`) — bounded-set storage, duplicate and
-  capacity checks, field reclamation.
+- [`typed_set`](https://github.com/unconfirmedlabs/typed_set) at
+  `b37474cbde166b7ddf8a3b615cd89f90182ace6f` — bounded-set storage,
+  duplicate/capacity checks, and field reclamation.
+
+Both are exact Git pins; this manifest has no local-path dependencies.
 
 ## Integrator notes
 

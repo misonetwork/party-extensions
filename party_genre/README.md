@@ -65,12 +65,16 @@ surfaces from a dependency:
 
 ## Dependencies
 
-- `miso_party` (local) — the `Party` / `PartyAdminCap` authorization core.
-- `typed_set` (local, `lib/typed_set`) — bounded-set mechanics: storage,
-  duplicate and capacity checks, field reclamation.
-- `genre` (git, pinned by SHA) — the shared Miso genre vocabulary: canonical,
-  name-derived, frozen `Genre` objects created permissionlessly under a shared
-  registry.
+- [`miso_party`](https://github.com/misonetwork/party) at
+  `ffb2915b9bb1802b4c160d3230c560e40bd2b063` — `Party` authorization.
+- [`typed_set`](https://github.com/unconfirmedlabs/typed_set) at
+  `b37474cbde166b7ddf8a3b615cd89f90182ace6f` — bounded-set storage,
+  duplicate/capacity checks, and field reclamation.
+- [`genre`](https://github.com/misonetwork/genre) at
+  `069fee03d7cae357d5a805e28eeb24171f10c303` — the canonical shared genre
+  vocabulary.
+
+All are exact Git pins; this manifest has no local-path dependencies.
 
 ## Integrator notes
 

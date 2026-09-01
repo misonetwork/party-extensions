@@ -1,55 +1,45 @@
-# Security Audit — `party_genre`
+# Release Audit — `party_genre`
 
-**Revision:** not a git repository (working tree as of audit date) · **Date:** 2026-08-23 ·
-**Toolchain:** sui 1.77.2
+**Repository:** `https://github.com/misonetwork/party-extensions`
+**Audit target:** pending working-tree source based on `6bd663033267b7c2fddb7ed8b9ce85f980121e2f`
+**Date:** 2026-09-02
+**Toolchain:** `sui 1.78.1-722ac4fcf484`
 
-Audit of `party_genre`, genre tags for a party: a `VecSet<ID>` of canonical
-`genre::Genre` object ids, managed through the `typed_set` primitive.
-Verdict: **safe — no findings.**
+## Verdict
 
-## What it does
+Release-ready. No security or correctness findings remain.
 
-- `add_genre` (`party_genre.move:60`) — cap-gated; takes `&Genre` so the
-  added id is a real vocabulary entry; capacity 20.
-- `remove_genre` / `clear_genres` (`:69`, `:76`) — cap-gated; removal
-  reclaims the field when the set empties.
-- Views (`:88-99`) — permissionless.
+## Implementation reviewed
 
-Threat model: unauthorized set mutation; fake genre ids; unbounded growth.
+`party_genre` is a state-attaching extension. It stores up to 20 canonical
+`Genre` object IDs through `typed_set`. Adding requires `&Genre`, proving the
+vocabulary object exists; removal is by ID. All mutations require the matching
+`PartyAdminCap`, final removal reclaims the field, and clear is idempotent.
 
-## Checks performed (all hold)
+## Exact manifest pins
 
-- **Authorization.** All three writes call `self.uid_mut(cap)` →
-  `party::authorize` (`miso_party` pinned rev `0127a150`,
-  `party.move:519-522`) BEFORE the set is touched or an event emitted.
-- **Vocabulary proof.** `add_genre` requires a `&Genre` object reference
-  (`:60-63`) — the id stored is `object::id(genre)`, so a party can only tag
-  ids of actual `Genre` objects from the pinned `genre` package (rev
-  `b94b11e3`). (A `&Genre` proves existence, not ownership — correct here:
-  tagging a genre needs no consent from anyone.)
-- **Set mechanics are sound.** Read the pinned `typed_set` (rev `a63230bb`):
-  duplicate abort, `length() < max` capacity check, `vec_set::insert`,
-  field dropped when the last item leaves (`typed_set.move:37-75`). The
-  redundant duplicate assert pins the abort LOCATION to `typed_set` — what
-  the consumers' tests match on.
-- **Key isolation.** `GenresKey()` (`:34`) is module-private-constructible;
-  the stored value is always `VecSet<ID>` (single writer module).
-- **Bounded.** 20 ids × 32 bytes — trivial ceiling.
+| Dependency | Repository | Revision |
+|---|---|---|
+| `miso_party` | `https://github.com/misonetwork/party.git` | `ffb2915b9bb1802b4c160d3230c560e40bd2b063` |
+| `typed_set` | `https://github.com/unconfirmedlabs/typed_set.git` | `b37474cbde166b7ddf8a3b615cd89f90182ace6f` |
+| `genre` | `https://github.com/misonetwork/genre.git` | `069fee03d7cae357d5a805e28eeb24171f10c303` |
 
-## Findings
-
-None.
-
-## Edge cases (verified)
-
-- Duplicate add — aborts `typed_set::EDuplicateItem`.
-- Remove absent / clear absent — aborts `EItemNotPresent` / no-op
-  respectively.
-- 21st genre — `EMaxItemsExceeded`.
-- Wrong cap — `EUnauthorized` at `miso_party::party` (tested).
+The manifest has no local-path or floating dependencies.
 
 ## Verification
 
-Tests in `tests/party_genre_tests.move`: 5 `expected_failure` cases including
-wrong-cap and typed_set aborts at `location = typed_set::typed_set`. The
-`genre` and `typed_set` dependencies were read at their pinned build copies.
+- Package tests: **7/7**, including **5** expected-failure paths for duplicate,
+  missing item, capacity, wrong cap, and authorization-before-capacity.
+- Production instruction coverage: **100.00%**.
+- End-to-end scenario covers the shared genre registry, immutable Genre,
+  shared Party, transferred admin cap, cap-gated write, and later public read.
+- Repository aggregate: **77/77 tests on Testnet and 77/77 on Mainnet**, strict
+  lint with warnings as errors; all 11 production modules are at **100.00%**.
+
+## Published metadata
+
+The retained `Published.toml` records prior immutable Testnet package
+`0xeaa9f5d615c93dcb23201f3c68ab2d58338fec53fc9cc2342264b119b76c3139`.
+It is prior-generation metadata wherever pending inputs differ. Fresh immutable
+publication uses the admin CLI with `--allow-republish`; only after confirmed
+success may it replace the target network block.

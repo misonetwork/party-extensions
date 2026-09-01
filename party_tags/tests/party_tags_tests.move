@@ -7,9 +7,11 @@ module party_tags::party_tags_tests;
 use miso_party::party;
 use party_tags::party_tags as tags;
 use std::unit_test::{assert_eq, destroy};
+use sui::test_scenario::{Self as ts};
 
 // Mirrors `party::EUnauthorized` (party.move) for the wrong-cap abort test.
 const EUnauthorized: u64 = 0;
+const OWNER: address = @0xA;
 
 fun new_party(ctx: &mut TxContext): (party::Party, party::PartyAdminCap) {
     {
@@ -45,9 +47,31 @@ fun add_remove_and_query() {
     tags::add_tag(&mut p, &cap, b"leftfield pop".to_string());
     tags::clear_tags(&mut p, &cap);
     assert!(!tags::has_tags(&p));
+    tags::clear_tags(&mut p, &cap); // no-op when absent
 
     destroy(p);
     destroy(cap);
+}
+
+#[test]
+fun shared_party_tags_workflow() {
+    let mut scenario = ts::begin(OWNER);
+    let (p, cap) = new_party(scenario.ctx());
+    party::share(p, &cap);
+    transfer::public_transfer(cap, OWNER);
+
+    scenario.next_tx(OWNER);
+    let mut p = scenario.take_shared<party::Party>();
+    let cap = scenario.take_from_sender<party::PartyAdminCap>();
+    tags::add_tag(&mut p, &cap, b"ambient".to_string());
+    ts::return_shared(p);
+    scenario.return_to_sender(cap);
+
+    scenario.next_tx(@0xB);
+    let p = scenario.take_shared<party::Party>();
+    assert!(tags::has_tag(&p, b"ambient".to_string()));
+    ts::return_shared(p);
+    scenario.end();
 }
 
 #[test, expected_failure(abort_code = 0, location = party_tags::party_tags)] // EEmptyTag
@@ -55,6 +79,15 @@ fun rejects_empty() {
     let ctx = &mut tx_context::dummy();
     let (mut p, cap) = new_party(ctx);
     tags::add_tag(&mut p, &cap, b"".to_string());
+    abort
+}
+
+#[test, expected_failure(abort_code = 1, location = party_tags::party_tags)] // ETagTooLong
+fun rejects_overlong_tag() {
+    let ctx = &mut tx_context::dummy();
+    let (mut p, cap) = new_party(ctx);
+    let tag = vector::tabulate!(51, |_| 97u8).to_string();
+    tags::add_tag(&mut p, &cap, tag);
     abort
 }
 

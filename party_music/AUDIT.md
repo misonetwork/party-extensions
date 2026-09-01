@@ -1,51 +1,46 @@
-# Security Audit — `party_music`
+# Release Audit — `party_music`
 
-**Revision:** not a git repository (working tree as of audit date) · **Date:** 2026-08-23 ·
-**Toolchain:** sui 1.77.2
+**Repository:** `https://github.com/misonetwork/party-extensions`
+**Audit target:** pending working-tree source based on `6bd663033267b7c2fddb7ed8b9ce85f980121e2f`
+**Date:** 2026-09-02
+**Toolchain:** `sui 1.78.1-722ac4fcf484`
 
-Audit of `party_music`, the music-platform payload package for
-`platform_link`: eight `…Data` types (Spotify, Bandcamp, SoundCloud, Apple
-Music, Deezer, Tidal, Amazon Music, Audiomack) plus validated constructors.
-Verdict: **safe — no findings.**
+## Verdict
 
-## What it does
+Release-ready. No security or correctness findings remain.
 
-Pure payload definitions + constructors (`party_music.move:56-109`). Each
-constructor asserts non-empty and `<= platform_link::max_identifier_length()`
-(256 bytes) and wraps the payload via `platform_link::new`. This package
-**touches no object, holds no state, gates nothing** — authorization happens
-at the call site (`party_platform_link::set_link`, which is
-`PartyAdminCap`-gated).
+## Implementation reviewed
 
-Threat model: malformed payloads reaching storage; storage bloat.
+`party_music` is a pure payload package, not a state-attaching extension. It
+defines eight artist-platform payload types and validated constructors for
+Spotify, Bandcamp, SoundCloud, Apple Music, Deezer, Tidal, Amazon Music, and
+Audiomack. A shared private validator enforces nonempty identifiers no longer
+than 256 bytes. The package has no Party, cap, storage, event, or automation
+logic; `party_platform_link` attaches returned values to Party state.
 
-## Checks performed (all hold)
+## Exact manifest pins
 
-- **Uniform validation.** All 8 constructors enforce identical bounds
-  (`EEmptyId` / `EIdTooLong`, `:29-32`); the limit comes from the shared
-  `platform_link` function, so it cannot drift between payload packages.
-- **Struct construction is module-private.** Each `…Data` has private
-  fields; the only way to build one is these constructors — no unvalidated
-  payload exists.
-- **Type-level platform isolation.** Distinct `Data` types → distinct
-  `PlatformLinkKey<Data>` df keys downstream; setting one platform's link
-  can never collide with another's.
-- **No abilities beyond `copy + drop + store`** — plain data values.
-- **No URL storage.** Only native ids; URLs are rebuilt client-side
-  (`:9-12`), so no stored-URL phishing surface from this package.
-  Handles remain untrusted input for renderers (integrator concern).
+| Dependency | Repository/subdirectory | Revision |
+|---|---|---|
+| `platform_link` | `https://github.com/misonetwork/party-extensions.git` / `lib/platform_link` | `684eaef752271865f1cbb1aafb819e5bba3c1d6c` |
 
-## Findings
-
-None.
-
-## Edge cases (verified)
-
-- Empty identifier — aborts in every constructor.
-- 257-byte identifier — aborts.
-- URL reshaping by a platform — no on-chain change needed (by design).
+The manifest has no local-path or floating dependencies.
 
 ## Verification
 
-Tests in `tests/party_music_tests.move` (3 `expected_failure` — validation
-aborts). Consumed only via `party_platform_link`'s cap-gated write path.
+- Package tests: **5/5**, including **3** expected-failure paths for empty
+  Spotify, empty Bandcamp, and the shared overlength validator.
+- All eight constructors and all eight accessors execute on success.
+- Production instruction coverage: **100.00%**.
+- Shared-Party workflow: not applicable; this package is pure payload code.
+- Repository aggregate: **77/77 tests on Testnet and 77/77 on Mainnet**, strict
+  lint with warnings as errors; all 11 production modules are at **100.00%**.
+
+## Published metadata
+
+The retained `Published.toml` records prior immutable Testnet package
+`0x491706bec2d57bbd3e1cda822d3228306f80360c0a965fc3b9293f0f24d33638`.
+Its bytecode predates the pending validator refactor even though public behavior
+and ABI are preserved. Fresh immutable publication uses the admin CLI with
+`--allow-republish`; only after confirmed success may it replace the target
+network block.

@@ -1,9 +1,11 @@
 # Miso Party Extensions — Roadmap
 
-Artist/entity profile pages are built by attaching **extensions** to a core
-`miso_party::party::Party` object via dynamic fields. Each extension owns one
-coherent slice of the profile, is gated by the party's `PartyAdminCap`, and can
-ship independently of the others.
+Artist/entity profile pages are built by attaching stateful **extensions** to
+the core [`miso_party::party::Party`](https://github.com/misonetwork/party) via
+dynamic fields. Each state-attaching extension owns one coherent slice, gates
+writes with the party's `PartyAdminCap`, and ships independently. Pure payload
+packages (`party_music`, `party_social`, `party_pro_link`) define validated
+platform values only; `party_platform_link` supplies their cap-gated storage.
 
 ## Design principles
 
@@ -16,8 +18,10 @@ ship independently of the others.
    handle/id (URL rebuilt client-side), or a full URL where there is no handle.
 3. **Many small extensions, not one mega-struct.** Move cannot add fields to a
    published struct without a migration. Independent extensions each own a slice
-   and evolve without touching the others. This is why the roadmap is phased by
-   extension, not by "v1 schema".
+   and can be succeeded without touching the others. Every package publishes
+   immutably; a changed data model is a new package plus an explicit migration,
+   never an upgrade. This is why the roadmap is phased by extension, not by
+   "v1 schema".
 4. **Cap-gated writes, permissionless reads.** Writes go through
    `party.uid_mut(cap)`; views read `party.uid()`. The one exception is
    verification, which is gated by Miso's cap and lives *outside* the party.
@@ -46,10 +50,10 @@ Two structural facts that remove large parts of the wishlist:
 | Package | Owns |
 |---|---|
 | `lib/platform_link` | `PlatformLink<Data>` primitive — one typed link per platform, stored on any UID |
-| `lib/typed_set` | Bounded-set primitive — one `VecSet<T>` per key type on any UID; dup/max checks, field reclamation on empty |
+| [`unconfirmedlabs/typed_set`](https://github.com/unconfirmedlabs/typed_set) | Bounded-set primitive — one `VecSet<T>` per key type on any UID; dup/max checks, field reclamation on empty |
 | `party_platform_link` | Party wiring: `set_link<Data>` / `clear_link` / views + phantom events |
-| `party_social` | Handle payloads: X, Instagram, Threads, TikTok, YouTube, Discord, Telegram, Reddit, Twitch, Facebook |
-| `party_music` | Artist-profile payloads: Spotify, Bandcamp, SoundCloud, Apple Music, Deezer, Tidal, Amazon, Audiomack |
+| `party_social` (payload) | Pure handle payloads: X, Instagram, Threads, TikTok, YouTube, Discord, Telegram, Reddit, Twitch, Facebook |
+| `party_music` (payload) | Pure artist-profile payloads: Spotify, Bandcamp, SoundCloud, Apple Music, Deezer, Tidal, Amazon, Audiomack |
 | `party_profile` (v1) | bio_short, bio_long, country (`country_code`), languages (`language_code`) |
 | `party_genre` | Genre-id tag set, validated against the `genre` vocabulary (`&Genre`) |
 | `miso-protocol-extensions/lib/genre` | Extracted vocabulary primitive (Sui-only), shared by releases + parties |
@@ -63,11 +67,11 @@ matrix, and prioritized calls-to-action.
 
 | Package | Owns | Notes |
 |---|---|---|
-| `party_profile` (v2) | pronouns, active_since | Extend the struct — published now, so new fields need a migration path, not a silent layout change |
+| `party_profile` successor | pronouns, active_since | Ship a new immutable package with an explicit migration; never alter the published v1 layout |
 | `party_roles` | Artist type set — Artist/Producer/DJ/Composer/Songwriter/Band/Label/Collective + `Custom` | Closed enum, mirrors `composition_party_role` |
 | `party_tags` | Free-form moods/scenes (`VecSet<String>` via `typed_set`) | Uncurated sibling to `party_genre` |
 | `party_media` | avatar + header as one Walrus quilt (`u256` blob id) | Patch roles ("avatar"/"header") are a client convention, derived off-chain |
-| `party_pro_link` | Website, booking/management/publisher/label pages, EPK; Patreon, Substack, Ko-fi | Mix of handle-based and full-URL payloads |
+| `party_pro_link` (payload) | Website, booking/management/publisher/label pages, EPK; Patreon, Substack, Ko-fi | Pure handle/full-URL payloads; attachment is `party_platform_link` |
 | `party_cta` | Ordered off-Miso call-to-action links — slim `{ label, url }`, replace-whole-list | External URLs only; on-Miso actions go to `party_featured` (Phase 2) |
 
 ---
@@ -109,7 +113,9 @@ design below.
 - **Off-chain / indexer:** page theme/accent/layout/section order, hide-show
   toggles, featured-media order, profile completeness score, last-updated,
   moderation status, "verified-links-only" (derived from verification stamps).
-- **Vault-authorized operations:** Party inbox receipt and accumulator withdrawal
-  live in `misofm/vault-plugins/party_wallet`; they store no profile data.
+- **Party actions:** Composable raw-cap Party inbox receipt and accumulator
+  withdrawal live in `misonetwork/party-actions/party_wallet`; they store no
+  profile data. Permissionless Vault automation, when needed, lives separately
+  as entry-only plugins that invoke Actions rather than reimplementing them.
 - **Never raw on-chain (PII/payment):** booking/press/sync emails, phone, fees,
   payout/wallet addresses, private management contacts.

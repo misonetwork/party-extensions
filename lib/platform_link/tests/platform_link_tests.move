@@ -15,6 +15,8 @@ public struct FooData has copy, drop, store { v: u64 }
 fun wraps_and_reads_payload() {
     let link = pl::new(FooData { v: 42 });
     assert_eq!(link.data().v, 42);
+    assert_eq!(pl::max_identifier_length(), 256);
+    assert_eq!(pl::max_url_length(), 2000);
 }
 
 #[test]
@@ -58,5 +60,13 @@ fun borrow_missing_aborts() {
     let ctx = &mut tx_context::dummy();
     let uid = object::new(ctx);
     let _ = pl::borrow<FooData>(&uid);
+    abort
+}
+
+#[test, expected_failure(abort_code = 0, location = platform_link::platform_link)] // ENoLink
+fun remove_missing_aborts() {
+    let ctx = &mut tx_context::dummy();
+    let mut uid = object::new(ctx);
+    let _ = pl::remove<FooData>(&mut uid);
     abort
 }

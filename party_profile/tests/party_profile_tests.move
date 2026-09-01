@@ -9,9 +9,11 @@ use language_code::language_code as lc;
 use miso_party::party;
 use party_profile::party_profile as profile;
 use std::unit_test::{assert_eq, destroy};
+use sui::test_scenario::{Self as ts};
 
 // Mirrors `party::EUnauthorized` (party.move) for the wrong-cap abort test.
 const EUnauthorized: u64 = 0;
+const OWNER: address = @0xA;
 
 /// A string of `len` 'A' bytes, for exercising the length bounds.
 fun long_string(len: u64): std::string::String {
@@ -96,6 +98,34 @@ fun clear_profile_removes_it() {
     destroy(cap);
 }
 
+#[test]
+fun shared_party_profile_workflow() {
+    let mut scenario = ts::begin(OWNER);
+    let (p, cap) = new_party(scenario.ctx());
+    party::share(p, &cap);
+    transfer::public_transfer(cap, OWNER);
+
+    scenario.next_tx(OWNER);
+    let mut p = scenario.take_shared<party::Party>();
+    let cap = scenario.take_from_sender<party::PartyAdminCap>();
+    profile::set_profile(
+        &mut p,
+        &cap,
+        b"Shared profile".to_string(),
+        option::none(),
+        option::none(),
+        vector[],
+    );
+    ts::return_shared(p);
+    scenario.return_to_sender(cap);
+
+    scenario.next_tx(@0xB);
+    let p = scenario.take_shared<party::Party>();
+    assert_eq!(profile::profile(&p).bio_short(), b"Shared profile".to_string());
+    ts::return_shared(p);
+    scenario.end();
+}
+
 /// The bound is inclusive, and it is on bytes rather than characters — 8 KB of
 /// bio is stored intact.
 #[test]
@@ -126,6 +156,37 @@ fun rejects_empty_bio_short() {
     let ctx = &mut tx_context::dummy();
     let (mut p, cap) = new_party(ctx);
     profile::set_profile(&mut p, &cap, b"".to_string(), option::none(), option::none(), vector[]);
+    abort
+}
+
+#[test, expected_failure(abort_code = 1, location = party_profile::party_profile)] // EBioShortTooLong
+fun rejects_bio_short_over_max_length() {
+    let ctx = &mut tx_context::dummy();
+    let (mut p, cap) = new_party(ctx);
+    profile::set_profile(&mut p, &cap, long_string(301), option::none(), option::none(), vector[]);
+    abort
+}
+
+#[test, expected_failure(abort_code = 2, location = party_profile::party_profile)] // EEmptyBioLong
+fun rejects_empty_bio_long() {
+    let ctx = &mut tx_context::dummy();
+    let (mut p, cap) = new_party(ctx);
+    profile::set_profile(
+        &mut p,
+        &cap,
+        b"bio".to_string(),
+        option::some(b"".to_string()),
+        option::none(),
+        vector[],
+    );
+    abort
+}
+
+#[test, expected_failure(abort_code = 5, location = party_profile::party_profile)] // ENoProfile
+fun reading_absent_profile_aborts() {
+    let ctx = &mut tx_context::dummy();
+    let (p, _cap) = new_party(ctx);
+    let _ = profile::profile(&p);
     abort
 }
 

@@ -52,8 +52,11 @@ with `EUnauthorized` (0) at `miso_party::party`.
 
 ## Dependencies
 
-- `miso_party` (local) — the `Party` / `PartyAdminCap` authorization core.
-- Otherwise only the Sui framework (`sui::dynamic_field`, `sui::event`).
+- [`miso_party`](https://github.com/misonetwork/party) at exact revision
+  `ffb2915b9bb1802b4c160d3230c560e40bd2b063` — the `Party` /
+  `PartyAdminCap` authorization core.
+- Otherwise only the Sui framework (`sui::dynamic_field`, `sui::event`). The
+  manifest has no local-path or floating dependencies.
 
 ## Integrator notes
 

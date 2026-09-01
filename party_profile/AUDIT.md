@@ -1,64 +1,50 @@
-# Security Audit — `party_profile`
+# Release Audit — `party_profile`
 
-**Revision:** not a git repository (working tree as of audit date) · **Date:** 2026-08-23 ·
-**Toolchain:** sui 1.77.2
+**Repository:** `https://github.com/misonetwork/party-extensions`
+**Audit target:** pending working-tree source based on `6bd663033267b7c2fddb7ed8b9ce85f980121e2f`
+**Date:** 2026-09-02
+**Toolchain:** `sui 1.78.1-722ac4fcf484`
 
-Audit of `party_profile`, a party's editable profile card (short/long bio,
-country, languages) stored as one `Profile` dynamic field. Verdict: **safe —
-no findings.**
+## Verdict
 
-## What it does
+Release-ready. No security or correctness findings remain.
 
-- `set_profile` (`party_profile.move:89`) — cap-gated whole-card replace;
-  validates bio_short (non-empty, ≤ 300), optional bio_long (non-empty when
-  present, ≤ 8192), languages (≤ 10, no duplicates).
-- `clear_profile` (`:113`) — cap-gated removal; no-op if unset.
-- Views (`:125-138`) — permissionless; `profile()` aborts `ENoProfile` when
-  unset.
+## Implementation reviewed
 
-Threat model: unauthorized profile writes; unbounded storage; invalid
-country/language codes; duplicate language padding.
+`party_profile` is a state-attaching extension. It stores one replace-whole
+Profile dynamic field: required short bio (1–300 bytes), optional long bio
+(1–8192 bytes), optional validated country code, and up to 10 distinct
+validated language codes. Optional long-bio validation uses `Option::do_ref!`
+with direct named numeric error constants; no caller-selected abort code remains.
+Set and clear require the matching `PartyAdminCap`; views are permissionless.
 
-## Checks performed (all hold)
+## Exact manifest pins
 
-- **Authorization.** Both writes call `self.uid_mut(cap)` →
-  `party::authorize` (`miso_party` pinned, `party.move:519-522`). In
-  `set_profile` validation runs before the cap gate (`:97-99` vs `:103`) —
-  a wrong-cap call with invalid input aborts with a validation error instead
-  of `EUnauthorized`; both abort, nothing is revealed or mutated (cosmetic
-  ordering note only).
-- **Bounded storage.** Hard ceiling: 300 + 8192 + 2-byte country + 10
-  language codes — no unbounded vector reachable.
-- **Codes are valid by construction.** `CountryCode` and `LanguageCode` are
-  constructor-gated primitives from pinned dependencies
-  (`country_code` rev `23fad25f`, `language_code` rev `c5973df8`); e.g.
-  `country_code::new` asserts membership in the 249-code ISO 3166-1 alpha-2
-  set embedded in bytecode. This package cannot be handed an invalid code.
-- **Duplicate languages rejected** (`validate_languages`, `:157-163`) via a
-  `vec_set` seen-check — no padding the 10-slot budget with repeats.
-- **Key isolation.** `ProfileKey()` (`:59`) is module-private-constructible;
-  `Profile` has no `copy`, and only this module writes the field.
-- **No name duplication** — the party's name stays on the core `Party`
-  (`:12-14`), so no two-sources-of-truth drift.
+| Dependency | Repository | Revision |
+|---|---|---|
+| `miso_party` | `https://github.com/misonetwork/party.git` | `ffb2915b9bb1802b4c160d3230c560e40bd2b063` |
+| `country_code` | `https://github.com/unconfirmedlabs/country_code.git` | `b4c92cb7f772879335344d7b6499b5fa4eafef56` |
+| `language_code` | `https://github.com/unconfirmedlabs/language_code.git` | `61542357f3d2ff989d120185046def7cf6c8bdcb` |
 
-## Findings
-
-None.
-
-## Edge cases (verified)
-
-- Empty bio_short / empty-when-present bio_long — aborts
-  (`EEmptyBioShort` / `EEmptyBioLong`).
-- Oversized bios — aborts (`EBioShortTooLong` / `EBioLongTooLong`).
-- 11 languages / duplicate language — aborts (`ETooManyLanguages` /
-  `EDuplicateLanguage`).
-- `none` country / empty languages vector / `none` bio_long — all valid
-  (validation is conditional on `is_some`, `:147-153`).
-- Clear when unset — no-op, no event; `profile()` view aborts `ENoProfile`.
-- Wrong cap — `EUnauthorized` (tested).
+The manifest has no local-path or floating dependencies.
 
 ## Verification
 
-Tests in `tests/party_profile_tests.move`: 5 `expected_failure` cases
-including wrong-cap. Dependency primitives read at their pinned build copies
-under `build/party_profile/sources/dependencies/`.
+- Package tests: **13/13**, including **8** expected-failure paths covering all
+  seven local errors, long/short boundaries, duplicate/capacity language checks,
+  and wrong-cap authorization.
+- Production instruction coverage: **100.00%**.
+- End-to-end scenario covers Party share, cap transfer, later profile write,
+  and permissionless read from the shared Party.
+- Strict fresh-copy builds without publication or lock metadata pass for both
+  Testnet and Mainnet—the previous dynamic-abort-code failure is closed.
+- Repository aggregate: **77/77 tests on Testnet and 77/77 on Mainnet**, strict
+  lint with warnings as errors; all 11 production modules are at **100.00%**.
+
+## Published metadata
+
+The retained `Published.toml` records prior immutable Testnet package
+`0xe01228bbcd4d9bcd4546ca47f50733efdd47c093eeab2a63b2c08092a455a48f`.
+Its bytecode predates the pending validator correction. Fresh immutable
+publication uses the admin CLI with `--allow-republish`; only after confirmed
+success may it replace the target network block.

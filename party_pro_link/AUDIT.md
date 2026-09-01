@@ -1,58 +1,46 @@
-# Security Audit — `party_pro_link`
+# Release Audit — `party_pro_link`
 
-**Revision:** not a git repository (working tree as of audit date) · **Date:** 2026-08-23 ·
-**Toolchain:** sui 1.77.2
+**Repository:** `https://github.com/misonetwork/party-extensions`
+**Audit target:** pending working-tree source based on `6bd663033267b7c2fddb7ed8b9ce85f980121e2f`
+**Date:** 2026-09-02
+**Toolchain:** `sui 1.78.1-722ac4fcf484`
 
-Audit of `party_pro_link`, the professional/industry payload package for
-`platform_link`: six URL-based types (website, booking, management,
-publisher, label, EPK) and three handle-based types (Patreon, Substack,
-Ko-fi). Verdict: **safe — no findings; one integrator-facing note.**
+## Verdict
 
-## What it does
+Release-ready. No security or correctness findings remain.
 
-Pure payload definitions + validated constructors
-(`party_pro_link.move:65-127`). URL-based payloads store a full `url` ≤
-`max_url_length()` (2000); handle-based ones store an identifier ≤
-`max_identifier_length()` (256). Like the other payload packages, this one
-touches no object and gates nothing — writes happen through
-`party_platform_link::set_link` under the `PartyAdminCap`.
+## Implementation reviewed
 
-Threat model: malformed payloads reaching storage; phishing URLs rendered as
-trusted links.
+`party_pro_link` is a pure payload package, not a state-attaching extension. It
+defines six URL payloads and three handle/subdomain payloads. Shared private
+validators enforce nonempty values, URL length at most 2000 bytes, and handle
+length at most 256 bytes. The package has no Party, cap, storage, event, or
+automation logic; `party_platform_link` attaches its returned values.
 
-## Checks performed (all hold)
+## Exact manifest pins
 
-- **Uniform validation.** Every constructor asserts non-empty + the shared
-  length backstop (`:62-127`); limits come from `platform_link` functions,
-  so no drift.
-- **Module-private construction** — no unvalidated payload can be built
-  outside these constructors.
-- **Type-level isolation** between the nine platforms via phantom-typed
-  keys downstream.
+| Dependency | Repository/subdirectory | Revision |
+|---|---|---|
+| `platform_link` | `https://github.com/misonetwork/party-extensions.git` / `lib/platform_link` | `684eaef752271865f1cbb1aafb819e5bba3c1d6c` |
 
-## Findings
-
-None.
-
-### Notes (integrator-facing, not code findings)
-
-- **Stored URLs are arbitrary by design** (`:8-10` — "the URL *is* the
-  identity"). A party admin can store any URL on their OWN party, including
-  lookalike/phishing destinations. Frontends MUST render these as untrusted
-  external links (no auto-redirect, clear external-link affordance). This is
-  self-sovereign data; the chain's job — bounds and authorization — is done.
-  **Disposition (2026-08-24):** accepted — self-sovereign data on one's own
-  party; untrusted-rendering is a documented frontend obligation.
-
-## Edge cases (verified)
-
-- Empty url/handle — aborts (`EEmptyValue`).
-- Over-long url (>2000) / handle (>256) — aborts (`EUrlTooLong` /
-  `EHandleTooLong`).
-- URL-valued payload vs handle-valued payload confusion — impossible: distinct
-  types, distinct constructors, distinct df keys downstream.
+The manifest has no local-path or floating dependencies.
 
 ## Verification
 
-Tests in `tests/party_pro_link_tests.move` (4 `expected_failure` — validation
-aborts).
+- Package tests: **6/6**, including **4** expected-failure paths covering
+  empty URL, empty handle, overlength URL, and overlength handle.
+- All nine constructors and their nine accessors execute successfully, including
+  `management_page` and `publisher_page`.
+- Production instruction coverage: **100.00%**.
+- Shared-Party workflow: not applicable; this package is pure payload code.
+- Repository aggregate: **77/77 tests on Testnet and 77/77 on Mainnet**, strict
+  lint with warnings as errors; all 11 production modules are at **100.00%**.
+
+## Published metadata
+
+The retained `Published.toml` records prior immutable Testnet package
+`0x0be57adad52ba72d9697526fb5d9330ebd3e44868f869836fc981b8df23e8519`.
+Its bytecode predates the pending validator refactor even though public behavior
+and ABI are preserved. Fresh immutable publication uses the admin CLI with
+`--allow-republish`; only after confirmed success may it replace the target
+network block.

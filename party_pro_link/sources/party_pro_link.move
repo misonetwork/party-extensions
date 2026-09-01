@@ -63,43 +63,37 @@ public struct KofiData has copy, drop, store { handle: String }
 
 /// Builds a website link from a full URL. Aborts if empty.
 public fun website(url: String): PlatformLink<WebsiteData> {
-    assert!(!url.is_empty(), EEmptyValue);
-    assert!(url.length() <= platform_link::max_url_length(), EUrlTooLong);
+    validate_url(&url);
     platform_link::new(WebsiteData { url })
 }
 
 /// Builds a booking-page link from a full URL. Aborts if empty.
 public fun booking_page(url: String): PlatformLink<BookingPageData> {
-    assert!(!url.is_empty(), EEmptyValue);
-    assert!(url.length() <= platform_link::max_url_length(), EUrlTooLong);
+    validate_url(&url);
     platform_link::new(BookingPageData { url })
 }
 
 /// Builds a management-page link from a full URL. Aborts if empty.
 public fun management_page(url: String): PlatformLink<ManagementPageData> {
-    assert!(!url.is_empty(), EEmptyValue);
-    assert!(url.length() <= platform_link::max_url_length(), EUrlTooLong);
+    validate_url(&url);
     platform_link::new(ManagementPageData { url })
 }
 
 /// Builds a publisher-page link from a full URL. Aborts if empty.
 public fun publisher_page(url: String): PlatformLink<PublisherPageData> {
-    assert!(!url.is_empty(), EEmptyValue);
-    assert!(url.length() <= platform_link::max_url_length(), EUrlTooLong);
+    validate_url(&url);
     platform_link::new(PublisherPageData { url })
 }
 
 /// Builds a label-page link from a full URL. Aborts if empty.
 public fun label_page(url: String): PlatformLink<LabelPageData> {
-    assert!(!url.is_empty(), EEmptyValue);
-    assert!(url.length() <= platform_link::max_url_length(), EUrlTooLong);
+    validate_url(&url);
     platform_link::new(LabelPageData { url })
 }
 
 /// Builds an EPK link from a full URL. Aborts if empty.
 public fun epk(url: String): PlatformLink<EpkData> {
-    assert!(!url.is_empty(), EEmptyValue);
-    assert!(url.length() <= platform_link::max_url_length(), EUrlTooLong);
+    validate_url(&url);
     platform_link::new(EpkData { url })
 }
 
@@ -107,22 +101,19 @@ public fun epk(url: String): PlatformLink<EpkData> {
 
 /// Builds a Patreon link from a handle. Aborts if empty.
 public fun patreon(handle: String): PlatformLink<PatreonData> {
-    assert!(!handle.is_empty(), EEmptyValue);
-    assert!(handle.length() <= platform_link::max_identifier_length(), EHandleTooLong);
+    validate_handle(&handle);
     platform_link::new(PatreonData { handle })
 }
 
 /// Builds a Substack link from a subdomain. Aborts if empty.
 public fun substack(subdomain: String): PlatformLink<SubstackData> {
-    assert!(!subdomain.is_empty(), EEmptyValue);
-    assert!(subdomain.length() <= platform_link::max_identifier_length(), EHandleTooLong);
+    validate_handle(&subdomain);
     platform_link::new(SubstackData { subdomain })
 }
 
 /// Builds a Ko-fi link from a handle. Aborts if empty.
 public fun kofi(handle: String): PlatformLink<KofiData> {
-    assert!(!handle.is_empty(), EEmptyValue);
-    assert!(handle.length() <= platform_link::max_identifier_length(), EHandleTooLong);
+    validate_handle(&handle);
     platform_link::new(KofiData { handle })
 }
 
@@ -137,3 +128,13 @@ public fun epk_url(self: &EpkData): String { self.url }
 public fun patreon_handle(self: &PatreonData): String { self.handle }
 public fun substack_subdomain(self: &SubstackData): String { self.subdomain }
 public fun kofi_handle(self: &KofiData): String { self.handle }
+
+fun validate_url(url: &String) {
+    assert!(!url.is_empty(), EEmptyValue);
+    assert!(url.length() <= platform_link::max_url_length(), EUrlTooLong);
+}
+
+fun validate_handle(handle: &String) {
+    assert!(!handle.is_empty(), EEmptyValue);
+    assert!(handle.length() <= platform_link::max_identifier_length(), EHandleTooLong);
+}

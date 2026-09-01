@@ -17,7 +17,7 @@ date comes from the party's creation event (the indexer has it for free).
 - Value: `Profile { bio_short: String, bio_long: Option<String>,
   country: Option<CountryCode>, languages: vector<LanguageCode> }`.
 - Limits: `bio_short` 1–300 bytes (the only required field); `bio_long`
-  1–5000 bytes when present; up to 10 language tags, no duplicates.
+  1–8192 bytes when present; up to 10 language tags, no duplicates.
 - `set_profile` replaces in place — the card is overwritten, never stacked.
   `clear_profile` removes the dynamic field entirely (storage reclaimed) and
   is a no-op when no profile is set.
@@ -59,7 +59,7 @@ with `EUnauthorized` at `miso_party::party`.
 | 0 | `EEmptyBioShort` | `bio_short` is empty |
 | 1 | `EBioShortTooLong` | `bio_short` exceeds 300 bytes |
 | 2 | `EEmptyBioLong` | `bio_long` is `some("")` — empty when provided |
-| 3 | `EBioLongTooLong` | `bio_long` exceeds 5000 bytes |
+| 3 | `EBioLongTooLong` | `bio_long` exceeds 8192 bytes |
 | 4 | `ETooManyLanguages` | More than 10 language tags |
 | 5 | `ENoProfile` | `profile()` with no profile set |
 | 6 | `EDuplicateLanguage` | A language tag appears more than once |
@@ -69,12 +69,17 @@ wrong cap.
 
 ## Dependencies
 
-- `miso_party` (local sibling checkout, `../../miso-party`) — the `Party` /
-  `PartyAdminCap` authorization core.
-- `country_code` (git, pinned by SHA) — validated `CountryCode` primitive.
-- `language_code` (git, pinned by SHA) — validated `LanguageCode` primitive;
+- [`miso_party`](https://github.com/misonetwork/party) at
+  `ffb2915b9bb1802b4c160d3230c560e40bd2b063` — the `Party` authorization
+  core.
+- [`country_code`](https://github.com/unconfirmedlabs/country_code) at
+  `b4c92cb7f772879335344d7b6499b5fa4eafef56` — validated `CountryCode`.
+- [`language_code`](https://github.com/unconfirmedlabs/language_code) at
+  `61542357f3d2ff989d120185046def7cf6c8bdcb` — validated `LanguageCode`;
   every value is a real ISO 639-1 code by construction, so only count and
   duplicates are checked here.
+
+All are exact Git pins; this manifest has no local-path dependencies.
 
 ## Integrator notes
 
@@ -82,7 +87,7 @@ wrong cap.
   read the current profile, modify client-side, call `set_profile`. There is
   no partial update.
 - **Lengths are bytes, not characters.** `bio_short` (300) and `bio_long`
-  (5000) bound the UTF-8 byte length, so multibyte text reaches the limit
+  (8192) bound the UTF-8 byte length, so multibyte text reaches the limit
   sooner. Validate before sending to avoid aborts.
 - **Free text is untrusted input.** `bio_short` / `bio_long` are
   user-controlled strings — sanitize before rendering.

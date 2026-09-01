@@ -62,7 +62,10 @@ None — this primitive is storage only. Consumers emit their own typed events
 
 ## Dependencies
 
-None beyond the Sui framework (`sui::dynamic_field`).
+No explicit manifest dependency. The Sui framework is resolved automatically;
+`Move.lock` pins both Testnet and Mainnet framework sources to
+`2a0becb2fcc6989e492981104af67f62f2c9511a`. The manifest has no local-path
+or floating dependencies.
 
 ## Integrator notes
 

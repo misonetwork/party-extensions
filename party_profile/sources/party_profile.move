@@ -95,7 +95,10 @@ public fun set_profile(
     languages: vector<LanguageCode>,
 ) {
     validate_bio_short(&bio_short);
-    validate_optional(&bio_long, MAX_BIO_LONG_LENGTH, EEmptyBioLong, EBioLongTooLong);
+    bio_long.do_ref!(|bio| {
+        assert!(!bio.is_empty(), EEmptyBioLong);
+        assert!(bio.length() <= MAX_BIO_LONG_LENGTH, EBioLongTooLong);
+    });
     validate_languages(&languages);
 
     let party_id = object::id(self);
@@ -142,14 +145,6 @@ public fun languages(self: &Profile): vector<LanguageCode> { self.languages }
 fun validate_bio_short(bio_short: &String) {
     assert!(!bio_short.is_empty(), EEmptyBioShort);
     assert!(bio_short.length() <= MAX_BIO_SHORT_LENGTH, EBioShortTooLong);
-}
-
-fun validate_optional(opt: &Option<String>, max: u64, empty_err: u64, long_err: u64) {
-    if (opt.is_some()) {
-        let s = opt.borrow();
-        assert!(!s.is_empty(), empty_err);
-        assert!(s.length() <= max, long_err);
-    }
 }
 
 // Each `LanguageCode` is already a valid ISO 639-1 code by construction, so

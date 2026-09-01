@@ -83,11 +83,41 @@ fun add_remove_and_query() {
     pg::add_genre(&mut p, &cap, &genre1);
     pg::clear_genres(&mut p, &cap);
     assert!(!pg::has_genres(&p));
+    pg::clear_genres(&mut p, &cap); // no-op when absent
 
     ts::return_immutable(genre1);
     ts::return_immutable(genre2);
     destroy(p);
     destroy(cap);
+    scenario.end();
+}
+
+#[test]
+fun shared_party_genre_workflow() {
+    let mut scenario = ts::begin(CREATOR);
+    g::init_for_testing(scenario.ctx());
+
+    scenario.next_tx(CREATOR);
+    let genre_id = create_genre(&scenario, b"HOUSE");
+
+    scenario.next_tx(CREATOR);
+    let (p, cap) = new_party(scenario.ctx());
+    party::share(p, &cap);
+    transfer::public_transfer(cap, CREATOR);
+
+    scenario.next_tx(CREATOR);
+    let genre = scenario.take_immutable_by_id<Genre>(genre_id);
+    let mut p = scenario.take_shared<party::Party>();
+    let cap = scenario.take_from_sender<party::PartyAdminCap>();
+    pg::add_genre(&mut p, &cap, &genre);
+    ts::return_immutable(genre);
+    ts::return_shared(p);
+    scenario.return_to_sender(cap);
+
+    scenario.next_tx(@0xB);
+    let p = scenario.take_shared<party::Party>();
+    assert!(pg::has_genre(&p, genre_id));
+    ts::return_shared(p);
     scenario.end();
 }
 

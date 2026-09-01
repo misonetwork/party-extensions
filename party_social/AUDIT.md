@@ -1,48 +1,46 @@
-# Security Audit — `party_social`
+# Release Audit — `party_social`
 
-**Revision:** not a git repository (working tree as of audit date) · **Date:** 2026-08-23 ·
-**Toolchain:** sui 1.77.2
+**Repository:** `https://github.com/misonetwork/party-extensions`
+**Audit target:** pending working-tree source based on `6bd663033267b7c2fddb7ed8b9ce85f980121e2f`
+**Date:** 2026-09-02
+**Toolchain:** `sui 1.78.1-722ac4fcf484`
 
-Audit of `party_social`, the social-platform payload package for
-`platform_link`: ten `…Data` types (X, Instagram, Threads, TikTok, YouTube,
-Discord, Telegram, Reddit, Twitch, Facebook) plus validated constructors.
-Verdict: **safe — no findings.**
+## Verdict
 
-## What it does
+Release-ready. No security or correctness findings remain.
 
-Pure payload definitions + constructors (`party_social.move:63-130`). Each
-asserts non-empty handle, `<= platform_link::max_identifier_length()` (256),
-and wraps via `platform_link::new`. No state, no object access, no
-authorization logic (that lives in `party_platform_link`'s cap-gated writes).
+## Implementation reviewed
 
-Threat model: malformed payloads reaching storage; storage bloat.
+`party_social` is a pure payload package, not a state-attaching extension. It
+defines ten social-platform payload types and constructors. A shared private
+validator enforces nonempty handles no longer than 256 bytes. Platform-specific
+format and URL reconstruction remain client policy. The package has no Party,
+cap, storage, event, or automation logic; `party_platform_link` attaches its
+returned values to Party state.
 
-## Checks performed (all hold)
+## Exact manifest pins
 
-- **Uniform validation** across all 10 constructors (`EEmptyHandle` /
-  `EHandleTooLong`, `:33-35`) against the shared 256-byte backstop — cannot
-  drift from the other payload packages.
-- **Module-private construction** — handles can only enter a `…Data` through
-  these constructors.
-- **Type-level platform isolation** — one `PlatformLinkKey<…Data>` field per
-  network downstream; no collisions.
-- **Handle-format rules deliberately absent** (`:11-13`): format validation
-  belongs to the app layer and changes over time; the chain enforces only
-  storage hygiene. Handles are untrusted input for renderers.
+| Dependency | Repository/subdirectory | Revision |
+|---|---|---|
+| `platform_link` | `https://github.com/misonetwork/party-extensions.git` / `lib/platform_link` | `684eaef752271865f1cbb1aafb819e5bba3c1d6c` |
 
-## Findings
-
-None.
-
-## Edge cases (verified)
-
-- Empty / 257-byte handle — aborts in every constructor.
-- Leading-`@` convention (X/Threads/TikTok store without it) — documented
-  per-type (`:39-46`); client concern, not chain state.
-- Discord stores an invite CODE, not a username (`:49-50`) — documented;
-  the constructor bounds it identically.
+The manifest has no local-path or floating dependencies.
 
 ## Verification
 
-Tests in `tests/party_social_tests.move` (3 `expected_failure` — validation
-aborts).
+- Package tests: **5/5**, including **3** expected-failure paths for empty X,
+  empty Instagram, and the shared overlength validator.
+- All ten constructors and accessors execute on success.
+- Production instruction coverage: **100.00%**.
+- Shared-Party workflow: not applicable; this package is pure payload code.
+- Repository aggregate: **77/77 tests on Testnet and 77/77 on Mainnet**, strict
+  lint with warnings as errors; all 11 production modules are at **100.00%**.
+
+## Published metadata
+
+The retained `Published.toml` records prior immutable Testnet package
+`0x23e8eebf229d4284297964f3b9ceab1574da515260afad22da7a113d14fec952`.
+Its bytecode predates the pending validator refactor even though public behavior
+and ABI are preserved. Fresh immutable publication uses the admin CLI with
+`--allow-republish`; only after confirmed success may it replace the target
+network block.

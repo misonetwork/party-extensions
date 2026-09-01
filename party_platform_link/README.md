@@ -78,14 +78,16 @@ payload packages, before `set_link` is ever called.
 
 ## Dependencies
 
-- `miso_party` (local) — the `Party` / `PartyAdminCap` authorization core.
-- `platform_link` (local, `lib/platform_link`) — all link storage mechanics;
-  this module is cap gating plus events only.
-- `party_social` (test-only, `modes = ["test"]`) — a concrete payload
-  (`XData`, `InstagramData`) to instantiate the generics in tests; kept out of
-  the production dependency graph.
+- [`miso_party`](https://github.com/misonetwork/party) at
+  `ffb2915b9bb1802b4c160d3230c560e40bd2b063` — `Party` authorization.
+- [`platform_link`](https://github.com/misonetwork/party-extensions/tree/684eaef752271865f1cbb1aafb819e5bba3c1d6c/lib/platform_link)
+  at `684eaef752271865f1cbb1aafb819e5bba3c1d6c` — all storage mechanics.
+- [`party_social`](https://github.com/misonetwork/party-extensions/tree/6bd663033267b7c2fddb7ed8b9ce85f980121e2f/party_social)
+  at `6bd663033267b7c2fddb7ed8b9ce85f980121e2f`, test-only via
+  `modes = ["test"]` — concrete payloads for generic tests; absent from the
+  production dependency graph.
 
-No git dependencies.
+All are exact Git pins; this manifest has no local-path dependencies.
 
 ## Integrator notes
 

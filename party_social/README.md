@@ -90,11 +90,14 @@ when a link is set or cleared; indexers re-read the field.
 
 ## Dependencies
 
-- `platform_link` (local, `../lib/platform_link`) — `platform_link::new`
-  wrapping plus the shared `max_identifier_length()` backstop.
+- [`platform_link`](https://github.com/misonetwork/party-extensions/tree/684eaef752271865f1cbb1aafb819e5bba3c1d6c/lib/platform_link)
+  at exact revision `684eaef752271865f1cbb1aafb819e5bba3c1d6c` —
+  `platform_link::new` wrapping plus the shared
+  `max_identifier_length()` backstop.
 
 Notably absent: `miso_party`. This package never sees a `Party` or a
 `PartyAdminCap`; authorization is entirely `party_platform_link`'s concern.
+The manifest has no local-path dependencies.
 
 ## Integrator notes
 

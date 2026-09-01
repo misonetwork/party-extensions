@@ -6,11 +6,18 @@ and [README.md](README.md) for the architecture and package overview.
 
 ## Repository shape
 
-- `lib/*` — protocol-agnostic primitives (`platform_link`, `typed_set`). They
-  depend only on the Sui framework: no `miso_party`, no Miso. If a mechanism
-  knows what a party is, it does not belong in `lib/`.
-- `party_*` — extensions. Each attaches one slice of a profile to a `Party`
-  via dynamic fields, gated by `PartyAdminCap` through `party::uid_mut(cap)`.
+- `lib/*` — protocol-agnostic primitives owned by this repository (currently
+  `platform_link`). They depend only on the Sui framework: no `miso_party`, no
+  Miso. The bounded-set primitive is the immutable external package
+  [`unconfirmedlabs/typed_set`](https://github.com/unconfirmedlabs/typed_set).
+  If a mechanism knows what a party is, it does not belong in `lib/`.
+- State-attaching `party_*` packages (`party_cta`, `party_genre`,
+  `party_media`, `party_platform_link`, `party_profile`, `party_roles`, and
+  `party_tags`) attach one slice to a `Party` via dynamic fields. Every write
+  is gated by `PartyAdminCap` through `party::uid_mut(cap)`.
+- `party_music`, `party_social`, and `party_pro_link` are pure payload
+  packages. They define validated values for `party_platform_link`; they do
+  not depend on or access `Party` or `PartyAdminCap`.
 - Every package is self-contained: `Move.toml`, `sources/`, `tests/`,
   `README.md`.
 
@@ -29,25 +36,41 @@ and [README.md](README.md) for the architecture and package overview.
 3. **Keep it slim.** One slice, one key, the smallest API that covers the
    feature. No speculative configurability, no helper functions with one call
    site, no unused public surface.
-4. **Gate every write with the cap.** All writes take `&PartyAdminCap` and go
-   through `party::uid_mut(cap)` — before any mutation or event emission.
-   Views are permissionless.
-5. **Bound everything stored.** Max lengths on strings, max counts on
+4. **Keep behavior out.** Extensions attach data to `Party`. Composable
+   functionality that consumes a raw `PartyAdminCap` belongs in
+   [`misonetwork/party-actions`](https://github.com/misonetwork/party-actions).
+   Permissionless Vault automation belongs in an entry-only plugin that calls
+   an Action. Do not put operational workflows in an extension.
+5. **Gate every state-attaching write with the cap.** Those writes take
+   `&PartyAdminCap` and go through `party::uid_mut(cap)` before mutation or
+   event emission. Payload constructors are pure and have no cap parameter.
+6. **Bound everything stored.** Max lengths on strings, max counts on
    collections. Reuse `platform_link::max_identifier_length()` /
    `max_url_length()` rather than re-declaring the same numbers — unless the
    package deliberately stays free of the `platform_link` dependency (as
    `party_cta` does).
-6. **Pin git dependencies to a commit SHA** — never `rev = "main"`.
-7. **Emit an event per write**, carrying `party_id`. Events are change
+7. **Use exact dependency provenance.** Every Git dependency uses a full
+   40-character commit SHA—never `main` or `master`—and committed manifests
+   contain no local-path dependencies. Packages publish immutably; changed data
+   models require a new package and explicit migration, not an upgrade.
+8. **Emit an event per write**, carrying `party_id`. Events are change
    signals: payloads are not re-included, except small, stable ones (ids and
    short display strings — `party_media`'s quilt id or a role or tag string),
    which ride in.
-8. **Tests:** happy path, each validation abort, and always a wrong-cap test
+9. **Tests:** happy path and each validation abort. Every state-attaching
+   extension also needs a wrong-cap test
    (`expected_failure(abort_code = EUnauthorized, location = miso_party::party)`
    — mirror the constant locally). Set-mechanics aborts assert `typed_set`'s
    codes at `location = typed_set::typed_set`.
-9. **Document** (below): package README, root README row, ROADMAP row.
-10. **Verify:** `sui move build && sui move test` in the package, warning-free.
+10. **Document** (below): package README, root README row, ROADMAP row.
+11. **Verify:** strict Testnet and Mainnet lint builds plus
+    `sui move test --coverage`; every production module must report 100%
+    instruction coverage.
+
+Retain `Published.toml`. It records a prior immutable generation and may not
+match pending source. Fresh publication goes through the admin CLI with
+`--allow-republish`; only a confirmed successful transaction may replace the
+target network block.
 
 ## Documenting an extension
 

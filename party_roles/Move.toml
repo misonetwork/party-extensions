@@ -6,4 +6,4 @@ authors = ["Miso Labs, Inc. (build@miso.network)"]
 
 [dependencies]
 miso_party = { git = "https://github.com/misonetwork/party.git", rev = "ffb2915b9bb1802b4c160d3230c560e40bd2b063" }
-typed_set = { git = "https://github.com/unconfirmedlabs/typed_set.git", rev = "a63230bbc202f19bea315d396dea73d1ad111633" }
+typed_set = { git = "https://github.com/unconfirmedlabs/typed_set.git", rev = "b37474cbde166b7ddf8a3b615cd89f90182ace6f" }
